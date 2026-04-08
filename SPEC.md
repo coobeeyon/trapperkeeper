@@ -80,6 +80,15 @@ Raw materials that are generated or assembled and have no other home.
 Design docs, meeting notes, diagrams, research — things that inform the
 wiki but aren't code and aren't in the repo.
 
+## Reference Implementation
+
+Litebrite is a git-native issue tracker that uses the same orphan branch
+pattern and Claude Code hook integration. Use it as the primary reference
+for git plumbing, CLI structure, and `setup claude` / `prime` commands.
+
+- **Source**: `../litebrite` (relative to this repo)
+- **Repo**: https://github.com/coobeeyon/litebrite
+
 ## CLI: `trk`
 
 Language: Rust. Binary: `trk`.
