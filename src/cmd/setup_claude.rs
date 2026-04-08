@@ -81,7 +81,8 @@ fn ensure_hook(settings: &mut Value, event: &str, command: &str) {
         .entry(event)
         .or_insert_with(|| json!([]));
 
-    let arr = entries.as_array().unwrap_or(&vec![]);
+    let binding = vec![];
+    let arr = entries.as_array().unwrap_or(&binding);
 
     // Check if any existing entry already runs this command
     let already_present = arr.iter().any(|entry| {
