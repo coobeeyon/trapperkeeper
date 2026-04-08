@@ -35,11 +35,10 @@
       "title": "Build failure: temporary borrow in setup_claude.rs ensure_hook",
       "description": "src/cmd/setup_claude.rs:84 fails to compile with E0716 (temporary value dropped while borrowed).\n\nThe line:\n  let arr = entries.as_array().unwrap_or(&vec![]);\n\ncreates a temporary vec![] that is freed before arr is used on line 87.\n\nFix:\n  let binding = vec![];\n  let arr = entries.as_array().unwrap_or(&binding);\n\nThis is a blocking build failure — cargo build exits with code 101 and produces no binary.",
       "item_type": "task",
-      "status": "open",
+      "status": "closed",
       "priority": 2,
-      "claimed_by": "agent-runner",
       "created_at": "2026-04-08T17:10:43.227259721Z",
-      "updated_at": "2026-04-08T17:18:37.937225226Z"
+      "updated_at": "2026-04-08T17:18:51.241595210Z"
     },
     "lb-rjtb": {
       "id": "lb-rjtb",
