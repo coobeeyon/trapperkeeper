@@ -73,11 +73,6 @@
       "dep_type": "parent"
     },
     {
-      "from_id": "lb-g02t",
-      "to_id": "lb-vkzo",
-      "dep_type": "blocks"
-    },
-    {
       "from_id": "lb-26bi",
       "to_id": "lb-vkzo",
       "dep_type": "blocks"
