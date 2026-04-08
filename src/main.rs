@@ -1,3 +1,6 @@
+mod cmd;
+mod git;
+
 use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
@@ -29,20 +32,16 @@ enum SetupTarget {
 fn main() {
     let cli = Cli::parse();
 
-    match cli.command {
-        Command::Init => {
-            eprintln!("trk init: not yet implemented");
-            std::process::exit(1);
-        }
+    let result = match cli.command {
+        Command::Init => cmd::init::run(),
         Command::Setup { target } => match target {
-            SetupTarget::Claude => {
-                eprintln!("trk setup claude: not yet implemented");
-                std::process::exit(1);
-            }
+            SetupTarget::Claude => cmd::setup_claude::run(),
         },
-        Command::Prime => {
-            eprintln!("trk prime: not yet implemented");
-            std::process::exit(1);
-        }
+        Command::Prime => cmd::prime::run(),
+    };
+
+    if let Err(e) = result {
+        eprintln!("error: {e}");
+        std::process::exit(1);
     }
 }
