@@ -81,6 +81,11 @@
       "from_id": "lb-vkzo",
       "to_id": "lb-26bi",
       "dep_type": "blocks"
+    },
+    {
+      "from_id": "lb-vkzo",
+      "to_id": "lb-4xoe",
+      "dep_type": "blocks"
     }
   ]
 }
