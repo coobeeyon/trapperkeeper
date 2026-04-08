@@ -10,6 +10,16 @@
       "created_at": "2026-04-08T17:00:56.340510224Z",
       "updated_at": "2026-04-08T17:00:56.340510224Z"
     },
+    "lb-4xoe": {
+      "id": "lb-4xoe",
+      "title": "trk prime — context injection",
+      "description": "Output wiki context for Claude Code. Show toc summary, recent log entries, and CLI reference. Silent exit if no trapperkeeper initialized in repo.",
+      "item_type": "task",
+      "status": "open",
+      "priority": 1,
+      "created_at": "2026-04-08T17:00:58.208025268Z",
+      "updated_at": "2026-04-08T17:00:58.208025268Z"
+    },
     "lb-g02t": {
       "id": "lb-g02t",
       "title": "trk init — orphan branch with skeleton",
@@ -39,6 +49,11 @@
     },
     {
       "from_id": "lb-26bi",
+      "to_id": "lb-rjtb",
+      "dep_type": "parent"
+    },
+    {
+      "from_id": "lb-4xoe",
       "to_id": "lb-rjtb",
       "dep_type": "parent"
     }
