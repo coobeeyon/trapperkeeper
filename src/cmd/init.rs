@@ -3,8 +3,7 @@ use crate::git;
 const TOC_CONTENT: &str = "# Table of Contents\n\n_No pages yet. Run a wiki update to populate._\n";
 const INDEX_CONTENT: &str = "# Index\n\n_No entries yet. Run a wiki update to populate._\n";
 const LOG_CONTENT: &str = "# Log\n";
-const PAGES_KEEP: &str = "";
-const SOURCES_KEEP: &str = "";
+const KEEP: &str = "";
 
 pub fn run() -> Result<(), String> {
     // Verify we're in a git repo
@@ -21,7 +20,7 @@ pub fn run() -> Result<(), String> {
     let toc_blob = git::hash_blob(TOC_CONTENT)?;
     let index_blob = git::hash_blob(INDEX_CONTENT)?;
     let log_blob = git::hash_blob(LOG_CONTENT)?;
-    let keep_blob = git::hash_blob(PAGES_KEEP)?;
+    let keep_blob = git::hash_blob(KEEP)?;
 
     // Create subtrees for pages/ and sources/
     let pages_tree = git::mktree(&[("100644", "blob", &keep_blob, ".gitkeep")])?;

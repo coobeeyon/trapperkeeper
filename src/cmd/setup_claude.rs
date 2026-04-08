@@ -5,16 +5,6 @@ use std::path::PathBuf;
 const SETTINGS_PATH: &str = ".claude/settings.local.json";
 const PERMISSION: &str = "Bash(trk:*)";
 
-fn hook_entry(command: &str) -> Value {
-    json!([{
-        "matcher": "*",
-        "hooks": [{
-            "type": "command",
-            "command": command
-        }]
-    }])
-}
-
 pub fn run() -> Result<(), String> {
     let path = PathBuf::from(SETTINGS_PATH);
 
