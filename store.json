@@ -15,11 +15,10 @@
       "title": "trk prime — context injection",
       "description": "Output wiki context for Claude Code. Show toc summary, recent log entries, and CLI reference. Silent exit if no trapperkeeper initialized in repo.",
       "item_type": "task",
-      "status": "open",
+      "status": "closed",
       "priority": 1,
-      "claimed_by": "agent-runner",
       "created_at": "2026-04-08T17:00:58.208025268Z",
-      "updated_at": "2026-04-08T17:08:44.276329198Z"
+      "updated_at": "2026-04-08T17:09:12.279003589Z"
     },
     "lb-g02t": {
       "id": "lb-g02t",
