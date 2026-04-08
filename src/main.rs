@@ -21,14 +21,6 @@ enum Command {
     },
     /// Output wiki context for Claude Code injection
     Prime,
-    /// Write a file to the wiki (content from stdin)
-    Write {
-        /// Path within the wiki (e.g. pages/architecture.md, toc.md)
-        path: String,
-        /// Commit message
-        #[arg(short, long)]
-        message: Option<String>,
-    },
 }
 
 #[derive(Subcommand)]
@@ -46,7 +38,6 @@ fn main() {
             SetupTarget::Claude => cmd::setup_claude::run(),
         },
         Command::Prime => cmd::prime::run(),
-        Command::Write { path, message } => cmd::write::run(&path, message.as_deref()),
     };
 
     if let Err(e) = result {

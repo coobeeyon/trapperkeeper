@@ -53,12 +53,15 @@ pub fn run() -> Result<(), String> {
     println!();
     println!("{log_body}");
     println!();
-    println!("## CLI Reference");
+    println!("## Wiki Maintenance");
     println!();
-    println!("- `trk init` — create orphan branch with skeleton wiki files");
-    println!("- `trk setup claude` — wire hooks into .claude/settings.local.json");
-    println!("- `trk prime` — output wiki context (this output)");
-    println!("- `trk write <path> [-m <message>]` — write a file to the wiki (content from stdin)");
+    println!("Branch: `{branch}`. Structure: toc.md, index.md, log.md, pages/, sources/");
+    println!("Read:  `git show {branch}:<path>`");
+    println!("List:  `git ls-tree -r --name-only {branch}`");
+    println!("Write: use git plumbing from the repo root:");
+    println!("  BLOB=$(echo '<content>' | git hash-object -w --stdin)");
+    println!("  # then rebuild tree with git mktree, commit with git commit-tree -p <parent>");
+    println!("  # and advance ref with git update-ref refs/heads/{branch} <commit>");
 
     Ok(())
 }
