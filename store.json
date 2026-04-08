@@ -45,10 +45,10 @@
       "title": "trapperkeeper initial build",
       "description": "Build the initial version of trk per SPEC.md",
       "item_type": "epic",
-      "status": "open",
+      "status": "closed",
       "priority": 1,
       "created_at": "2026-04-08T17:00:49.763744837Z",
-      "updated_at": "2026-04-08T17:00:49.763744837Z"
+      "updated_at": "2026-04-08T17:20:12.712621115Z"
     },
     "lb-vkzo": {
       "id": "lb-vkzo",
