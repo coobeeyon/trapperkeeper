@@ -12,29 +12,47 @@ pub fn run() -> Result<(), String> {
         "\
 # Trapperkeeper Wiki
 
-This repo has an LLM-maintained wiki on the `{branch}` orphan branch.
-It contains compiled knowledge about the codebase — architecture, decisions,
-cross-references — so you don't have to re-derive understanding each session.
+This repo has an LLM-maintained wiki at `.trapper_keeper/` in the repo root.
+The wiki is yours — you maintain it, and you are its primary consumer.
+It exists so you don't re-derive understanding that a previous session
+already worked out. A good wiki page saves dozens of tool calls.
 
-## How to use it
+The wiki lives on the `{branch}` orphan branch, checked out as a
+gitignored worktree. Read and write files there directly. Commit your
+changes with `git -C .trapper_keeper add -A && git -C .trapper_keeper commit -m \"<message>\"`.
 
-- **Read a file:** `git show {branch}:<path>`
-- **List all files:** `git ls-tree -r --name-only {branch}`
-- **Start with:** `toc.md` (navigation), `index.md` (concept lookup)
+## Consult the wiki before exploring
 
-## Structure
+Before reading source files to understand the codebase, check the wiki first.
 
+- `.trapper_keeper/toc.md` — find the relevant page
+- `.trapper_keeper/index.md` — look up a concept
+- `.trapper_keeper/pages/<page>.md` — read compiled knowledge
+
+If the wiki answers your question, use it. If it's incomplete or wrong,
+fix it after you've done the exploration.
+
+## Update the wiki when understanding crystallizes
+
+These are the key moments:
+
+- **Plan ratified** — record the *why* and the intended approach
+- **Implementation finished** — record *what* was built and how
+- **Review or debugging done** — record *what you learned*
+
+On every update, maintain consistency across all three:
 - `toc.md` — hierarchical navigation with summaries
 - `index.md` — concept-to-location cross-reference
-- `log.md` — chronological record of wiki activity
-- `pages/` — synthesized wiki pages
-- `sources/` — raw materials (design docs, notes)
+- `log.md` — append a dated entry: `## [YYYY-MM-DD] verb | summary`
 
-## When to update the wiki
+This bookkeeping is where the real value compounds. Do not skip it.
 
-Update when understanding crystallizes: after a plan is ratified,
-implementation finishes, or a review surfaces new insights. Keep
-toc, index, and cross-references consistent when you do.
+## Pages
+
+Pages live in `pages/`. A page should capture synthesized understanding,
+not raw notes. Good pages: architecture overviews, module summaries,
+decision records (the *why* behind choices), concept pages that span
+multiple files.
 "
     );
 

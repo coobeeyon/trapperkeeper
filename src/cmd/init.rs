@@ -41,9 +41,39 @@ pub fn run() -> Result<(), String> {
     // Point the branch at the commit
     git::update_ref(git::BRANCH, &commit)?;
 
+    // Set up the gitignored worktree
+    setup_worktree()?;
+
     eprintln!(
         "Initialized trapperkeeper on branch '{}'",
         git::BRANCH
     );
+    Ok(())
+}
+
+const WORKTREE_DIR: &str = ".trapper_keeper";
+
+fn setup_worktree() -> Result<(), String> {
+    git::git(&["worktree", "add", WORKTREE_DIR, git::BRANCH])?;
+
+    // Ensure .trapper_keeper is in .gitignore
+    let gitignore_path = ".gitignore";
+    let entry = format!("/{WORKTREE_DIR}");
+    let contents = std::fs::read_to_string(gitignore_path).unwrap_or_default();
+    if !contents.lines().any(|l| l.trim() == entry) {
+        use std::io::Write;
+        let mut f = std::fs::OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(gitignore_path)
+            .map_err(|e| format!("Failed to open .gitignore: {e}"))?;
+        // Add newline before entry if file doesn't end with one
+        if !contents.is_empty() && !contents.ends_with('\n') {
+            writeln!(f).map_err(|e| format!("Failed to write .gitignore: {e}"))?;
+        }
+        writeln!(f, "{entry}").map_err(|e| format!("Failed to write .gitignore: {e}"))?;
+    }
+
+    eprintln!("Created worktree at {WORKTREE_DIR}/");
     Ok(())
 }
