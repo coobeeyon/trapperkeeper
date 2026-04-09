@@ -13,11 +13,17 @@
 - **hooks** — SessionStart/PreCompact integration. src/cmd/setup_claude.rs, pages/decisions.md
 
 ## I
+- **ingest** — wiki operation: add source, update pages. pages/llm-wiki-pattern.md
 - **init** — create orphan branch. src/cmd/init.rs, pages/architecture.md
 - **insert_into_tree** — recursive tree manipulation. src/git.rs:135
 
+## K
+- **Karpathy LLM Wiki** — compile-don't-retrieve pattern. pages/llm-wiki-pattern.md, sources/karpathy-llm-wiki.md
+
 ## L
+- **lint** — wiki operation: health check for contradictions/orphans. pages/llm-wiki-pattern.md
 - **litebrite** — reference implementation. ../litebrite, SPEC.md, pages/decisions.md
+- **LLM Wiki pattern** — three-layer architecture (raw/wiki/schema). pages/llm-wiki-pattern.md
 - **ls_tree** — read tree entries. src/git.rs:91
 
 ## M
@@ -29,7 +35,11 @@
 ## P
 - **prime** — context injection command. src/cmd/prime.rs, pages/architecture.md
 
+## Q
+- **query** — wiki operation: ask questions against compiled pages. pages/llm-wiki-pattern.md
+
 ## S
+- **schema drift** — LLM diverges from wiki conventions over time. pages/llm-wiki-pattern.md
 - **setup_claude** — hook wiring command. src/cmd/setup_claude.rs, pages/architecture.md
 - **settings.local.json** — Claude Code config. .claude/settings.local.json, src/cmd/setup_claude.rs
 
