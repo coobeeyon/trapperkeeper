@@ -2,12 +2,21 @@
 
 Key decisions and the reasoning behind them.
 
-## Orphan branch for storage
+## Orphan branch for storage (default)
 
-Wiki data lives on a git orphan branch, not in the working tree. This
-avoids polluting code commits with wiki updates while keeping everything
-in git. The same pattern litebrite uses for its tracker. Future direction:
-an "admin repo" could replace this for multi-repo wikis.
+Default mode. Wiki data lives on a git orphan branch (`trapperkeeper`),
+checked out as a gitignored worktree at `.trapper_keeper/`. Avoids
+polluting code commits with wiki updates. Same pattern litebrite uses
+for its tracker.
+
+## In-tree mode (alternative, opt-in)
+
+`trk init --in-tree <path>` stores the wiki as a committed directory
+instead. Trades PR-diff noise for human visibility — collaborators can
+read the wiki without knowing about a gitignored worktree. Required a
+merge-friendly flat-sorted format for `toc.md` / `index.md` and
+`merge=union` for `log.md`. Added 2026-04-23 after collaborator feedback.
+See pages/in-tree-mode.md.
 
 ## Hook-based integration (not CLAUDE.md)
 

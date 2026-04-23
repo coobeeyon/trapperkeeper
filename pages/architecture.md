@@ -1,41 +1,44 @@
 # Architecture
 
-Trapperkeeper is a Rust CLI (`trk`) that maintains a wiki on a git orphan
-branch. The wiki is for LLM consumption — compiled knowledge that saves
-tokens and eliminates redundant codebase exploration.
+Trapperkeeper is a Rust CLI (`trk`) that maintains a wiki for LLM
+consumption — compiled knowledge that saves tokens and eliminates
+redundant codebase exploration. Two storage modes, chosen at init time:
+orphan branch (default) or in-tree directory.
 
 ## Module Structure
 
 - **src/main.rs** — CLI entry point. Clap-based subcommand dispatch.
-  Commands: `init`, `setup claude`, `prime`, `write`.
-- **src/git.rs** — Git plumbing layer. All git operations go through here.
-  Wraps raw git commands (hash-object, mktree, commit-tree, ls-tree,
-  update-ref). Handles blob creation, tree manipulation, and commits on
-  the orphan branch without touching the working tree.
+  Commands: `init [--in-tree PATH]`, `setup claude`, `prime`.
+- **src/config.rs** — Reads/writes `.trapperkeeper.json` at repo root.
+  Holds mode selection and (for in-tree) wiki path. Falls back to
+  orphan-branch detection for repos predating the config file.
+- **src/git.rs** — Git plumbing layer: `git()`, `branch_exists()`,
+  `hash_blob()`, `mktree()`, `commit_tree()`, `update_ref()`.
 - **src/cmd/** — One file per command:
-  - **init.rs** — Creates the orphan branch with skeleton files (toc.md,
-    index.md, log.md, pages/, sources/).
+  - **init.rs** — Two paths: orphan (creates branch + worktree + .gitignore
+    entry) or in-tree (creates on-disk directory, gitignores sources/,
+    leaves files uncommitted for the user to include in their next commit).
+    Both write `.trapperkeeper.json` and a `merge=union` gitattributes
+    entry for `log.md`.
   - **setup_claude.rs** — Wires SessionStart/PreCompact hooks and
     Bash(trk:*) permission into .claude/settings.local.json. Idempotent.
-  - **prime.rs** — Reads toc.md and recent log.md from the orphan branch,
-    outputs formatted context for Claude Code injection. Silent exit if
-    not initialized.
-  - **write.rs** — Reads content from stdin, writes it to a path on the
-    orphan branch. Handles nested paths (e.g. pages/foo.md) by rebuilding
-    subtrees. Each write is an atomic commit.
+    Mode-agnostic.
+  - **prime.rs** — Loads config, outputs mode-aware instructions for
+    Claude Code injection. Silent exit if not initialized.
 
 ## Data Storage
 
-All wiki data lives on the `trapperkeeper` orphan branch. No files appear
-in the working tree. Git plumbing commands manipulate the branch directly:
+### Orphan mode (default)
 
-1. `hash-object -w` to create blobs
-2. `ls-tree` to read existing tree entries
-3. `mktree` to build new trees
-4. `commit-tree -p` to create commits with parent
-5. `update-ref` to advance the branch
+Wiki lives on the `trapperkeeper` orphan branch, checked out as a
+gitignored worktree at `.trapper_keeper/`. See pages/git-plumbing.md for
+how the initial tree is built via plumbing commands.
 
-This mirrors litebrite's approach (see ../litebrite).
+### In-tree mode
+
+Wiki lives as a normal directory in the repo at a user-chosen path
+(e.g. `docs/wiki/`). Committed by the user as part of normal workflow.
+`<path>/sources/` is gitignored. See pages/in-tree-mode.md.
 
 ## Integration
 
@@ -45,4 +48,5 @@ Hook-based. `trk setup claude` adds hooks to .claude/settings.local.json:
 
 ## Dependencies
 
-Minimal: clap (CLI parsing), serde_json (settings.local.json manipulation).
+Runtime: clap (CLI parsing), serde_json (config + settings.local.json).
+Dev: assert_cmd, tempfile (integration tests in tests/merge.rs).
