@@ -1,5 +1,12 @@
 # Log
 
+## [2026-04-23] implement | --adopt flag for existing wikis
+Added `trk init --in-tree <path> --adopt` which wires up an existing
+wiki directory without clobbering content. Requires at least one of
+toc/index/log.md to exist. Fills in missing skeleton pieces. Tests for
+adopt (preserve existing, create missing, refuse empty, refuse
+unrelated content, refuse --adopt without --in-tree). 23 tests total.
+
 ## [2026-04-23] implement | In-tree mode
 Added `trk init --in-tree <path>` alternative storage where the wiki
 is a committed directory instead of the orphan branch. New src/config.rs

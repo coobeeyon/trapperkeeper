@@ -14,20 +14,45 @@ noise (wiki edits show up in diffs) for human visibility.
 ## How to use it
 
 ```
-trk init --in-tree docs/wiki
+trk init --in-tree docs/wiki           # fresh wiki
+trk init --in-tree docs/wiki --adopt   # wrap an existing wiki
 ```
 
 The path is required — there's no safe cross-ecosystem default. After
 init:
 
 - `docs/wiki/toc.md`, `index.md`, `log.md`, `pages/`, `sources/` are
-  created on disk as untracked files.
+  created on disk as untracked files (if they don't already exist).
 - `.trapperkeeper.json` records the mode and path.
 - `docs/wiki/sources/` is added to `.gitignore` (sources are intentionally
   not committed — see below).
 - `.gitattributes` gets a `docs/wiki/log.md merge=union` entry.
 - Nothing is committed. The user commits the new files as part of their
   next commit.
+
+## `--adopt` for existing wikis
+
+If you already have a wiki directory — e.g. hand-maintained docs, or
+wiki content from a prior tool — use `--adopt` to wire it up without
+clobbering:
+
+```
+trk init --in-tree docs/wiki --adopt
+```
+
+`--adopt` behavior:
+
+- Requires `--in-tree` (no orphan equivalent — orphan mode is always fresh).
+- Requires at least one of `toc.md` / `index.md` / `log.md` to exist in
+  the path (safety check so it can't silently turn into "clobber off").
+- Never overwrites existing files. Any missing skeleton piece
+  (`pages/`, `sources/`, `.gitkeep`s, missing `toc.md`, etc.) is filled in.
+- Still writes `.trapperkeeper.json`, the `.gitignore` entry for
+  `sources/`, and the `.gitattributes` union-merge entry for `log.md`.
+
+If the existing toc/index aren't in the flat-sorted format, run `trk
+prime` to see the invariants and migrate them by hand (not automated —
+the format is enforced by convention, not tooling).
 
 ## Why `sources/` is gitignored
 

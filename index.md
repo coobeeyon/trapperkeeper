@@ -1,6 +1,7 @@
 # Index
 <!-- sorted alphabetically, one entry per line, no section headers -->
 
+- **adopt** — wrap an existing wiki dir with `--adopt`. src/cmd/init.rs, pages/in-tree-mode.md
 - **clap** — CLI parsing framework. Cargo.toml, src/main.rs
 - **CLAUDE.md** — not used; hooks replace it. pages/decisions.md
 - **commit_tree** — create git commit. src/git.rs
