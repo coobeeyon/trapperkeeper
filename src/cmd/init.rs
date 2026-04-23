@@ -1,14 +1,37 @@
+use crate::config::{self, Config};
 use crate::git;
+use std::fs;
+use std::io::Write;
+use std::path::{Path, PathBuf};
 
-const TOC_CONTENT: &str = "# Table of Contents\n\n_No pages yet. Run a wiki update to populate._\n";
-const INDEX_CONTENT: &str = "# Index\n\n_No entries yet. Run a wiki update to populate._\n";
+const TOC_CONTENT: &str = "\
+# Table of Contents
+<!-- sorted alphabetically, one entry per line, no section headers -->
+
+_No pages yet._
+";
+
+const INDEX_CONTENT: &str = "\
+# Index
+<!-- sorted alphabetically, one entry per line, no section headers -->
+
+_No entries yet._
+";
+
 const LOG_CONTENT: &str = "# Log\n";
 const KEEP: &str = "";
+const WORKTREE_DIR: &str = ".trapper_keeper";
 
-pub fn run() -> Result<(), String> {
+pub fn run(in_tree: Option<PathBuf>) -> Result<(), String> {
     // Verify we're in a git repo
     git::git(&["rev-parse", "--git-dir"])?;
 
+    if config::exists()? {
+        return Err(format!(
+            "trapperkeeper already initialized ({} exists)",
+            config::FILE
+        ));
+    }
     if git::branch_exists() {
         return Err(format!(
             "trapperkeeper already initialized (branch '{}' exists)",
@@ -16,17 +39,21 @@ pub fn run() -> Result<(), String> {
         ));
     }
 
-    // Create blobs for skeleton files
+    match in_tree {
+        None => init_orphan(),
+        Some(path) => init_in_tree(path),
+    }
+}
+
+fn init_orphan() -> Result<(), String> {
     let toc_blob = git::hash_blob(TOC_CONTENT)?;
     let index_blob = git::hash_blob(INDEX_CONTENT)?;
     let log_blob = git::hash_blob(LOG_CONTENT)?;
     let keep_blob = git::hash_blob(KEEP)?;
 
-    // Create subtrees for pages/ and sources/
     let pages_tree = git::mktree(&[("100644", "blob", &keep_blob, ".gitkeep")])?;
     let sources_tree = git::mktree(&[("100644", "blob", &keep_blob, ".gitkeep")])?;
 
-    // Create root tree
     let root_tree = git::mktree(&[
         ("100644", "blob", &toc_blob, "toc.md"),
         ("100644", "blob", &index_blob, "index.md"),
@@ -35,45 +62,100 @@ pub fn run() -> Result<(), String> {
         ("040000", "tree", &sources_tree, "sources"),
     ])?;
 
-    // Create orphan commit (no parent)
     let commit = git::commit_tree(&root_tree, "Initialize trapperkeeper")?;
-
-    // Point the branch at the commit
     git::update_ref(git::BRANCH, &commit)?;
 
-    // Set up the gitignored worktree
     setup_worktree()?;
 
-    eprintln!(
-        "Initialized trapperkeeper on branch '{}'",
-        git::BRANCH
-    );
+    ensure_gitattributes_union_merge(&format!("{WORKTREE_DIR}/log.md"))?;
+    config::save(&Config::orphan())?;
+
+    eprintln!("Initialized trapperkeeper on branch '{}'", git::BRANCH);
     Ok(())
 }
 
-const WORKTREE_DIR: &str = ".trapper_keeper";
+fn init_in_tree(path: PathBuf) -> Result<(), String> {
+    if path.is_absolute() {
+        return Err(format!(
+            "--in-tree path must be repo-relative, got: {}",
+            path.display()
+        ));
+    }
+    if path.exists() {
+        let is_empty = fs::read_dir(&path)
+            .map(|mut it| it.next().is_none())
+            .unwrap_or(false);
+        if !is_empty {
+            return Err(format!(
+                "--in-tree path '{}' already exists and is not empty",
+                path.display()
+            ));
+        }
+    }
+
+    let pages = path.join("pages");
+    let sources = path.join("sources");
+    fs::create_dir_all(&pages)
+        .map_err(|e| format!("failed to create {}: {e}", pages.display()))?;
+    fs::create_dir_all(&sources)
+        .map_err(|e| format!("failed to create {}: {e}", sources.display()))?;
+
+    write_file(&path.join("toc.md"), TOC_CONTENT)?;
+    write_file(&path.join("index.md"), INDEX_CONTENT)?;
+    write_file(&path.join("log.md"), LOG_CONTENT)?;
+    write_file(&pages.join(".gitkeep"), "")?;
+    write_file(&sources.join(".gitkeep"), "")?;
+
+    let sources_ignore = format!("/{}/sources/", path.to_string_lossy());
+    append_line_if_missing(Path::new(".gitignore"), &sources_ignore)?;
+
+    let log_rel = format!("{}/log.md", path.to_string_lossy());
+    ensure_gitattributes_union_merge(&log_rel)?;
+
+    config::save(&Config::in_tree(path.clone()))?;
+
+    eprintln!(
+        "Initialized trapperkeeper in-tree at '{}'",
+        path.display()
+    );
+    eprintln!("Review and commit the new files as part of your next commit.");
+    Ok(())
+}
+
+fn write_file(path: &Path, content: &str) -> Result<(), String> {
+    fs::write(path, content)
+        .map_err(|e| format!("failed to write {}: {e}", path.display()))
+}
 
 fn setup_worktree() -> Result<(), String> {
     git::git(&["worktree", "add", WORKTREE_DIR, git::BRANCH])?;
 
-    // Ensure .trapper_keeper is in .gitignore
-    let gitignore_path = ".gitignore";
     let entry = format!("/{WORKTREE_DIR}");
-    let contents = std::fs::read_to_string(gitignore_path).unwrap_or_default();
-    if !contents.lines().any(|l| l.trim() == entry) {
-        use std::io::Write;
-        let mut f = std::fs::OpenOptions::new()
-            .create(true)
-            .append(true)
-            .open(gitignore_path)
-            .map_err(|e| format!("Failed to open .gitignore: {e}"))?;
-        // Add newline before entry if file doesn't end with one
-        if !contents.is_empty() && !contents.ends_with('\n') {
-            writeln!(f).map_err(|e| format!("Failed to write .gitignore: {e}"))?;
-        }
-        writeln!(f, "{entry}").map_err(|e| format!("Failed to write .gitignore: {e}"))?;
-    }
+    append_line_if_missing(Path::new(".gitignore"), &entry)?;
 
     eprintln!("Created worktree at {WORKTREE_DIR}/");
     Ok(())
+}
+
+fn append_line_if_missing(path: &Path, entry: &str) -> Result<(), String> {
+    let contents = fs::read_to_string(path).unwrap_or_default();
+    if contents.lines().any(|l| l.trim() == entry) {
+        return Ok(());
+    }
+    let mut f = fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(path)
+        .map_err(|e| format!("failed to open {}: {e}", path.display()))?;
+    if !contents.is_empty() && !contents.ends_with('\n') {
+        writeln!(f).map_err(|e| format!("failed to write {}: {e}", path.display()))?;
+    }
+    writeln!(f, "{entry}")
+        .map_err(|e| format!("failed to write {}: {e}", path.display()))?;
+    Ok(())
+}
+
+fn ensure_gitattributes_union_merge(path: &str) -> Result<(), String> {
+    let entry = format!("{path} merge=union");
+    append_line_if_missing(Path::new(".gitattributes"), &entry)
 }
