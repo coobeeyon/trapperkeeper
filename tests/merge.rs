@@ -209,6 +209,87 @@ fn in_tree_init_refuses_non_empty_dir() {
     repo.trk_fails(&["init", "--in-tree", WIKI]);
 }
 
+// --------------------------- init: --adopt ---------------------------
+
+#[test]
+fn adopt_wires_up_existing_wiki_without_clobbering() {
+    let repo = Repo::new();
+    let wiki = repo.path.join(WIKI);
+    fs::create_dir_all(wiki.join("pages")).unwrap();
+    fs::write(wiki.join("toc.md"), "# Table of Contents\n\n- [Existing](pages/existing.md) — kept\n").unwrap();
+    fs::write(wiki.join("index.md"), "# Index\n\n- **existing** — kept\n").unwrap();
+    fs::write(wiki.join("log.md"), "# Log\n\n## [2026-04-01] pre | already there\n").unwrap();
+    fs::write(wiki.join("pages/existing.md"), "# Existing Page\n").unwrap();
+
+    repo.trk(&["init", "--in-tree", WIKI, "--adopt"]);
+
+    // Existing files preserved.
+    assert!(
+        repo.read(&format!("{WIKI}/toc.md")).contains("Existing"),
+        "adopt must not clobber existing toc.md"
+    );
+    assert!(
+        repo.read(&format!("{WIKI}/log.md")).contains("already there"),
+        "adopt must not clobber existing log.md"
+    );
+    assert!(repo.path.join(WIKI).join("pages/existing.md").exists());
+
+    // Bookkeeping written.
+    assert!(repo.path.join(".trapperkeeper.json").exists());
+    let cfg = repo.read(".trapperkeeper.json");
+    assert!(cfg.contains("\"mode\": \"in-tree\""));
+    assert!(cfg.contains(&format!("\"path\": \"{WIKI}\"")));
+
+    let gitignore = repo.read(".gitignore");
+    assert!(gitignore.contains(&format!("/{WIKI}/sources/")));
+
+    let attrs = repo.read(".gitattributes");
+    assert!(attrs.contains(&format!("{WIKI}/log.md merge=union")));
+
+    // Missing scaffolding (sources/, .gitkeep) filled in.
+    assert!(repo.path.join(WIKI).join("sources").is_dir());
+}
+
+#[test]
+fn adopt_creates_missing_skeleton_files() {
+    // User has a partial wiki — just pages/ and log.md, no toc/index yet.
+    let repo = Repo::new();
+    let wiki = repo.path.join(WIKI);
+    fs::create_dir_all(wiki.join("pages")).unwrap();
+    fs::write(wiki.join("log.md"), "# Log\n").unwrap();
+
+    repo.trk(&["init", "--in-tree", WIKI, "--adopt"]);
+
+    // log.md preserved, toc/index created from skeleton.
+    assert!(repo.path.join(WIKI).join("toc.md").exists());
+    assert!(repo.path.join(WIKI).join("index.md").exists());
+    assert!(repo.read(&format!("{WIKI}/toc.md")).contains("sorted alphabetically"));
+}
+
+#[test]
+fn adopt_refuses_when_path_is_empty() {
+    let repo = Repo::new();
+    fs::create_dir_all(repo.path.join(WIKI)).unwrap();
+    // Empty dir — there's nothing to adopt.
+    repo.trk_fails(&["init", "--in-tree", WIKI, "--adopt"]);
+}
+
+#[test]
+fn adopt_refuses_when_path_has_unrelated_content() {
+    let repo = Repo::new();
+    let wiki = repo.path.join(WIKI);
+    fs::create_dir_all(&wiki).unwrap();
+    fs::write(wiki.join("README.md"), "not a wiki").unwrap();
+    // Dir has content but none of toc/index/log — reject.
+    repo.trk_fails(&["init", "--in-tree", WIKI, "--adopt"]);
+}
+
+#[test]
+fn adopt_requires_in_tree_flag() {
+    let repo = Repo::new();
+    repo.trk_fails(&["init", "--adopt"]);
+}
+
 #[test]
 fn in_tree_init_rejects_absolute_path() {
     let repo = Repo::new();

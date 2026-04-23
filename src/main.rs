@@ -20,6 +20,11 @@ enum Command {
         /// on the `trapperkeeper` orphan branch.
         #[arg(long, value_name = "PATH")]
         in_tree: Option<PathBuf>,
+        /// Adopt an existing wiki directory (requires --in-tree). Skips
+        /// writing skeleton files that already exist; still sets up the
+        /// config, .gitignore, and .gitattributes entries.
+        #[arg(long, requires = "in_tree")]
+        adopt: bool,
     },
     /// Wire hooks into .claude/settings.local.json
     Setup {
@@ -40,7 +45,7 @@ fn main() {
     let cli = Cli::parse();
 
     let result = match cli.command {
-        Command::Init { in_tree } => cmd::init::run(in_tree),
+        Command::Init { in_tree, adopt } => cmd::init::run(in_tree, adopt),
         Command::Setup { target } => match target {
             SetupTarget::Claude => cmd::setup_claude::run(),
         },

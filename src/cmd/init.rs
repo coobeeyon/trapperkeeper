@@ -22,7 +22,7 @@ const LOG_CONTENT: &str = "# Log\n";
 const KEEP: &str = "";
 const WORKTREE_DIR: &str = ".trapper_keeper";
 
-pub fn run(in_tree: Option<PathBuf>) -> Result<(), String> {
+pub fn run(in_tree: Option<PathBuf>, adopt: bool) -> Result<(), String> {
     // Verify we're in a git repo
     git::git(&["rev-parse", "--git-dir"])?;
 
@@ -41,7 +41,7 @@ pub fn run(in_tree: Option<PathBuf>) -> Result<(), String> {
 
     match in_tree {
         None => init_orphan(),
-        Some(path) => init_in_tree(path),
+        Some(path) => init_in_tree(path, adopt),
     }
 }
 
@@ -74,20 +74,33 @@ fn init_orphan() -> Result<(), String> {
     Ok(())
 }
 
-fn init_in_tree(path: PathBuf) -> Result<(), String> {
+fn init_in_tree(path: PathBuf, adopt: bool) -> Result<(), String> {
     if path.is_absolute() {
         return Err(format!(
             "--in-tree path must be repo-relative, got: {}",
             path.display()
         ));
     }
-    if path.exists() {
+
+    if adopt {
+        let has_wiki_file = ["toc.md", "index.md", "log.md"]
+            .iter()
+            .any(|f| path.join(f).exists());
+        if !has_wiki_file {
+            return Err(format!(
+                "--adopt requires an existing wiki at '{}' (expected at \
+                 least one of toc.md, index.md, or log.md)",
+                path.display()
+            ));
+        }
+    } else if path.exists() {
         let is_empty = fs::read_dir(&path)
             .map(|mut it| it.next().is_none())
             .unwrap_or(false);
         if !is_empty {
             return Err(format!(
-                "--in-tree path '{}' already exists and is not empty",
+                "--in-tree path '{}' already exists and is not empty \
+                 (pass --adopt to wire up an existing wiki)",
                 path.display()
             ));
         }
@@ -100,11 +113,11 @@ fn init_in_tree(path: PathBuf) -> Result<(), String> {
     fs::create_dir_all(&sources)
         .map_err(|e| format!("failed to create {}: {e}", sources.display()))?;
 
-    write_file(&path.join("toc.md"), TOC_CONTENT)?;
-    write_file(&path.join("index.md"), INDEX_CONTENT)?;
-    write_file(&path.join("log.md"), LOG_CONTENT)?;
-    write_file(&pages.join(".gitkeep"), "")?;
-    write_file(&sources.join(".gitkeep"), "")?;
+    write_file_if_missing(&path.join("toc.md"), TOC_CONTENT)?;
+    write_file_if_missing(&path.join("index.md"), INDEX_CONTENT)?;
+    write_file_if_missing(&path.join("log.md"), LOG_CONTENT)?;
+    write_file_if_missing(&pages.join(".gitkeep"), "")?;
+    write_file_if_missing(&sources.join(".gitkeep"), "")?;
 
     let sources_ignore = format!("/{}/sources/", path.to_string_lossy());
     append_line_if_missing(Path::new(".gitignore"), &sources_ignore)?;
@@ -114,15 +127,25 @@ fn init_in_tree(path: PathBuf) -> Result<(), String> {
 
     config::save(&Config::in_tree(path.clone()))?;
 
-    eprintln!(
-        "Initialized trapperkeeper in-tree at '{}'",
-        path.display()
-    );
+    if adopt {
+        eprintln!(
+            "Adopted existing wiki at '{}'",
+            path.display()
+        );
+    } else {
+        eprintln!(
+            "Initialized trapperkeeper in-tree at '{}'",
+            path.display()
+        );
+    }
     eprintln!("Review and commit the new files as part of your next commit.");
     Ok(())
 }
 
-fn write_file(path: &Path, content: &str) -> Result<(), String> {
+fn write_file_if_missing(path: &Path, content: &str) -> Result<(), String> {
+    if path.exists() {
+        return Ok(());
+    }
     fs::write(path, content)
         .map_err(|e| format!("failed to write {}: {e}", path.display()))
 }
