@@ -1,8 +1,13 @@
 # Table of Contents
-<!-- sorted alphabetically, one entry per line, no section headers -->
+<!-- Hierarchical navigation. Group pages under `## <Section>` headers; sort sections and entries alphabetically. -->
 
+## Architecture
 - [Architecture Overview](pages/architecture.md) — module structure, storage modes, integration
-- [Decisions](pages/decisions.md) — key choices and their rationale
 - [Git Plumbing](pages/git-plumbing.md) — how reads/writes work on the orphan branch without checkout
-- [In-Tree Mode](pages/in-tree-mode.md) — alternative storage where the wiki is a committed directory
+- [In-Tree Mode](pages/in-tree-mode.md) — alternative storage: wiki as a committed directory
+
+## Concepts
 - [LLM Wiki Pattern](pages/llm-wiki-pattern.md) — Karpathy's compile-don't-retrieve pattern
+
+## Project
+- [Decisions](pages/decisions.md) — key choices and their rationale

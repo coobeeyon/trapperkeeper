@@ -1,5 +1,15 @@
 # Log
 
+## [2026-04-24] fix | Restore hierarchical toc.md
+Earlier flat-sorting of toc.md lost the navigational structure — a table
+of contents without sections isn't really a toc. Reverted toc.md to
+grouped-under-sections form; sections sorted alphabetically by heading,
+entries sorted alphabetically within each section. index.md stays flat
+(letter-headers added no semantic value there). Updated skeleton in
+init.rs, invariants in prime.rs, assertion helper, and added
+`toc_section_adds_in_different_sections_merge_cleanly` test proving
+concurrent adds to different sections merge. 24 tests.
+
 ## [2026-04-23] implement | --adopt flag for existing wikis
 Added `trk init --in-tree <path> --adopt` which wires up an existing
 wiki directory without clobbering content. Requires at least one of

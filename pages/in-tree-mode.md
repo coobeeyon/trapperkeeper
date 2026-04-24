@@ -65,28 +65,37 @@ gitignore `<path>/sources/` so raw materials stay local.
 
 ## Merge-friendly format for toc.md and index.md
 
-In-tree mode means concurrent branches can edit wiki files. The wiki's
-two index files (`toc.md`, `index.md`) must be written in a format that
-git's line-based 3-way merge handles well.
+In-tree mode means concurrent branches can edit wiki files. The two
+files have different shapes because they serve different purposes —
+the shape is chosen so git's line-based 3-way merge handles it well:
 
-Invariants (enforced by convention, documented in `trk prime` output):
-
-- **One entry per line.** No multi-line entries.
-- **Sorted alphabetically**, ASCII-lowercased, tiebreak by raw bytes.
-- **No section headers.** Grouping entries under `## Architecture` or
-  `## A` clusters adds at the same lines and forces conflicts.
+- **`toc.md` — hierarchical navigation.** Group pages under
+  `## <Section>` headers (e.g. `## Architecture`, `## Concepts`). Sort
+  sections alphabetically by heading; sort entries alphabetically within
+  each section. One entry per line. The section structure is the
+  navigational value — keep it.
+- **`index.md` — flat concept lookup.** One entry per line, sorted
+  alphabetically by entry text (ASCII-lowercased). No section headers —
+  letter-headers like `## A` add no semantic value and cluster concurrent
+  adds on the same lines. Flat sorted is strictly better here.
+- **`log.md` — append-only.** `merge=union` in `.gitattributes` means
+  concurrent appends always merge cleanly.
 
 ### What merges cleanly
 
-- Adds that land in different regions of the sorted file (the common case
-  once the wiki has more than a handful of entries).
-- Appends to `log.md` — handled by `merge=union`, always clean.
+- toc.md: adds to different sections (separate hunks around the
+  section headers).
+- toc.md: adds that land in different regions of a single section.
+- index.md: adds that land in different regions of the sorted file (the
+  common case once the index has more than a handful of entries).
+- log.md: any concurrent appends (union).
 
 ### What conflicts (by design)
 
-- Two branches inserting different entries into the *same gap* between
-  adjacent existing entries. Line-based merge can't pick an order.
-  Acceptable — rare in practice, trivial to resolve.
+- Two branches inserting into the *same gap* between adjacent existing
+  entries (especially in small toc sections or a sparse index). Line-based
+  merge can't pick an order. Acceptable — rare in practice, trivial to
+  resolve.
 - Two branches editing the *same entry* with different content. This is
   a real disagreement and should surface.
 
