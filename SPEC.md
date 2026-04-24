@@ -28,11 +28,18 @@ exist and trapperkeeper knows how to reach them.
 - **Assembled materials** — design docs, notes, etc. stored in `sources/`
   on the orphan branch when they have no other home
 
-### Wiki Layer (Orphan Branch)
+### Wiki Layer (Orphan Branch or In-Tree Directory)
 
-All wiki state lives on a git orphan branch (like litebrite's tracker).
-Clean separation from code commits, git-native persistence, travels with
-the repo.
+Default: all wiki state lives on a git orphan branch (like litebrite's
+tracker). Clean separation from code commits, git-native persistence,
+travels with the repo.
+
+Alternative (`trk init --in-tree <path>`): the wiki lives as a normal
+committed directory at `<path>/`. Trades PR-diff noise for human
+visibility — useful when collaborators want to read the wiki without
+knowing about a gitignored worktree. `<path>/sources/` is gitignored
+either way. Mode is chosen once at init time and persisted in
+`.trapperkeeper.json` at repo root.
 
 ```
 toc.md            # hierarchical, top-down navigation with summaries
