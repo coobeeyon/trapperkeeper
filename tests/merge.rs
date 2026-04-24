@@ -263,7 +263,8 @@ fn adopt_creates_missing_skeleton_files() {
     // log.md preserved, toc/index created from skeleton.
     assert!(repo.path.join(WIKI).join("toc.md").exists());
     assert!(repo.path.join(WIKI).join("index.md").exists());
-    assert!(repo.read(&format!("{WIKI}/toc.md")).contains("sorted alphabetically"));
+    assert!(repo.read(&format!("{WIKI}/toc.md")).contains("Hierarchical"));
+    assert!(repo.read(&format!("{WIKI}/index.md")).contains("Flat"));
 }
 
 #[test]
@@ -394,17 +395,20 @@ fn prime_backward_compat_uses_orphan_when_only_branch_exists() {
 
 fn assert_format_invariants_documented(prime_out: &str) {
     assert!(
-        prime_out.contains("One entry per line"),
-        "format invariant missing: {prime_out}"
+        prime_out.contains("one entry per line") || prime_out.contains("One entry per line"),
+        "one-entry-per-line invariant missing: {prime_out}"
     );
+    // toc.md: hierarchical with section headers
     assert!(
-        prime_out.contains("Sorted alphabetically"),
-        "format invariant missing: {prime_out}"
+        prime_out.contains("toc.md") && prime_out.contains("hierarchical"),
+        "toc.md hierarchy documented: {prime_out}"
     );
+    // index.md: flat
     assert!(
-        prime_out.contains("No section headers"),
-        "format invariant missing: {prime_out}"
+        prime_out.contains("index.md") && prime_out.contains("flat"),
+        "index.md flat documented: {prime_out}"
     );
+    // log.md: union merge
     assert!(
         prime_out.contains("merge=union"),
         "log.md merge=union documented: {prime_out}"
@@ -447,6 +451,59 @@ fn non_adjacent_toc_adds_merge_cleanly() {
             "merged toc missing {needle}:\n{merged}"
         );
     }
+}
+
+/// Hierarchical toc: two branches add entries to DIFFERENT sections
+/// merge cleanly — the section headers separate them into distinct hunks.
+#[test]
+fn toc_section_adds_in_different_sections_merge_cleanly() {
+    let repo = Repo::new();
+    repo.trk(&["init", "--in-tree", WIKI]);
+    let toc = format!("{WIKI}/toc.md");
+
+    let base = "\
+# Table of Contents
+
+## Architecture
+- [Architecture Overview](pages/architecture.md) — module structure
+- [Git Plumbing](pages/git-plumbing.md) — orphan branch IO
+
+## Concepts
+- [LLM Wiki Pattern](pages/llm-wiki-pattern.md) — compile-don't-retrieve
+
+## Project
+- [Decisions](pages/decisions.md) — key choices
+";
+    repo.write(&toc, base);
+    repo.commit_all("base toc");
+
+    // Branch A adds under Architecture.
+    repo.checkout_new("branch-a");
+    let a = base.replace(
+        "- [Git Plumbing](pages/git-plumbing.md) — orphan branch IO\n",
+        "- [Git Plumbing](pages/git-plumbing.md) — orphan branch IO\n- [In-Tree Mode](pages/in-tree-mode.md) — alternative storage\n",
+    );
+    repo.write(&toc, &a);
+    repo.commit_all("add in-tree page");
+
+    // Branch B adds under Project.
+    repo.checkout("main");
+    repo.checkout_new("branch-b");
+    let b = base.replace(
+        "- [Decisions](pages/decisions.md) — key choices\n",
+        "- [Decisions](pages/decisions.md) — key choices\n- [Roadmap](pages/roadmap.md) — what's next\n",
+    );
+    repo.write(&toc, &b);
+    repo.commit_all("add roadmap page");
+
+    assert!(
+        repo.try_merge("branch-a"),
+        "adds to different sections should merge cleanly"
+    );
+
+    let merged = repo.read(&toc);
+    assert!(merged.contains("In-Tree Mode"));
+    assert!(merged.contains("Roadmap"));
 }
 
 /// Pathological case: two branches insert into the same gap. Git can't

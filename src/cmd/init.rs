@@ -6,14 +6,14 @@ use std::path::{Path, PathBuf};
 
 const TOC_CONTENT: &str = "\
 # Table of Contents
-<!-- sorted alphabetically, one entry per line, no section headers -->
+<!-- Hierarchical navigation. Group pages under `## <Section>` headers; sort sections and entries alphabetically. -->
 
 _No pages yet._
 ";
 
 const INDEX_CONTENT: &str = "\
 # Index
-<!-- sorted alphabetically, one entry per line, no section headers -->
+<!-- Concept lookup. Flat, one entry per line, sorted alphabetically. No section headers. -->
 
 _No entries yet._
 ";

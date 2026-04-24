@@ -61,18 +61,25 @@ On every update, maintain consistency across all three:
 
 This bookkeeping is where the real value compounds. Do not skip it.
 
-## Format invariants for toc.md and index.md
+## Format invariants
 
-Both files must stay merge-friendly so concurrent branches don't collide:
+Both `toc.md` and `index.md` use one entry per line (no multi-line
+entries) so git's line-based merge can handle concurrent edits. Beyond
+that the two files serve different purposes and look different:
 
-- **One entry per line.** No multi-line entries.
-- **Sorted alphabetically** by entry text (ASCII-lowercased, ties broken
-  by raw bytes). Keep the file in sort order after every edit.
-- **No section headers.** Do not group entries under `## Architecture`,
-  `## A`, etc. — adds cluster at headers and collide.
-
-`log.md` is append-only and merges via `merge=union` (configured in
-`.gitattributes`), so concurrent appends always merge cleanly.
+- **toc.md — hierarchical navigation.** Group pages under `## <Section>`
+  headers (e.g. `## Architecture`, `## Concepts`). Sort sections
+  alphabetically by heading; sort entries alphabetically within each
+  section. The sections are the value — this is a table of contents,
+  not a flat list. Small sections may still conflict on concurrent adds
+  to the same section; that's an accepted cost for navigability.
+- **index.md — flat concept lookup.** One entry per line, sorted
+  alphabetically by entry text (ASCII-lowercased, ties by raw bytes).
+  No section headers — letter-headers like `## A` cluster adds and add
+  no semantic value. Keep the file in sort order after every edit.
+- **log.md — append-only chronological.** Merges via `merge=union`
+  (configured in `.gitattributes`), so concurrent appends always merge
+  cleanly. Not sorted.
 
 ## Pages
 
