@@ -1,3 +1,5 @@
 /target
 /logs
 /.trapper_keeper
+/.claude
+/.codex
