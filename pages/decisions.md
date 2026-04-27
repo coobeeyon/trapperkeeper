@@ -20,6 +20,10 @@ permission. Codex uses its hooks feature, a SessionStart hook for
 `startup|resume|clear`, and a rules file that allows the `trk` command
 prefix. Codex currently has no PreCompact hook equivalent.
 
+Generated agent settings are local machine state. `.claude/` and `.codex/`
+are gitignored; each clone should run the relevant setup commands instead
+of committing generated hook/config files.
+
 ## Rust
 
 Consistent with litebrite. Both tools share the same git plumbing
