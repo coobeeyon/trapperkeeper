@@ -1,43 +1,35 @@
 # Index
+<!-- sorted alphabetically, one entry per line, no section headers -->
 
-## C
+- **adopt** — wrap an existing wiki dir with `--adopt`. src/cmd/init.rs, pages/in-tree-mode.md
 - **clap** — CLI parsing framework. Cargo.toml, src/main.rs
-- **commit_tree** — create git commit. src/git.rs:113, src/git.rs:118
+- **CLAUDE.md** — not used; hooks replace it. pages/decisions.md
 - **Codex hooks** — SessionStart integration configured by `trk setup codex`. src/cmd/setup_codex.rs, pages/architecture.md
 - **codex_hooks** — Codex feature flag enabled in .codex/config.toml. src/cmd/setup_codex.rs
-
-## G
+- **commit_tree** — create git commit. src/git.rs
+- **config** — mode/path persistence in `.trapperkeeper.json`. src/config.rs, pages/in-tree-mode.md
 - **git plumbing** — low-level git operations. src/git.rs, pages/git-plumbing.md
-
-## H
-- **hash_blob** — write blob to git object store. src/git.rs:26
+- **hash_blob** — write blob to git object store. src/git.rs
 - **hooks** — SessionStart/PreCompact integration for supported coding agents. src/cmd/setup_claude.rs, src/cmd/setup_codex.rs, pages/decisions.md
-
-## I
-- **init** — create orphan branch. src/cmd/init.rs, pages/architecture.md
-- **insert_into_tree** — recursive tree manipulation. src/git.rs:135
-
-## L
+- **in-tree mode** — wiki as committed directory. src/cmd/init.rs, pages/in-tree-mode.md
+- **ingest** — wiki operation: add source, update pages. pages/llm-wiki-pattern.md
+- **init** — create wiki (orphan branch or in-tree dir). src/cmd/init.rs, pages/architecture.md
+- **Karpathy LLM Wiki** — compile-don't-retrieve pattern. pages/llm-wiki-pattern.md, sources/karpathy-llm-wiki.md
+- **lint** — wiki operation: health check for contradictions/orphans. pages/llm-wiki-pattern.md
 - **litebrite** — reference implementation. ../litebrite, SPEC.md, pages/decisions.md
-- **ls_tree** — read tree entries. src/git.rs:91
-
-## M
-- **mktree** — build git tree. src/git.rs:55
-
-## O
-- **orphan branch** — wiki storage mechanism. pages/decisions.md, pages/architecture.md
-
-## P
+- **LLM Wiki pattern** — three-layer architecture (raw/wiki/schema). pages/llm-wiki-pattern.md
+- **ls_tree** — read tree entries. src/git.rs
+- **merge=union** — gitattributes setting for append-only log.md. pages/in-tree-mode.md
+- **mktree** — build git tree. src/git.rs
+- **mode** — orphan vs in-tree storage. src/config.rs, pages/in-tree-mode.md
+- **orphan branch** — default wiki storage. pages/decisions.md, pages/architecture.md
 - **prime** — context injection command. src/cmd/prime.rs, pages/architecture.md
-
-## S
-- **setup_codex** — Codex hook/rules wiring command. src/cmd/setup_codex.rs, pages/architecture.md
+- **query** — wiki operation: ask questions against compiled pages. pages/llm-wiki-pattern.md
+- **schema drift** — LLM diverges from wiki conventions over time. pages/llm-wiki-pattern.md
 - **setup_claude** — hook wiring command. src/cmd/setup_claude.rs, pages/architecture.md
+- **setup_codex** — Codex hook/rules wiring command. src/cmd/setup_codex.rs, pages/architecture.md
 - **settings.local.json** — Claude Code config. .claude/settings.local.json, src/cmd/setup_claude.rs
-
-## T
-- **trapperkeeper (branch)** — orphan branch name. src/git.rs:3
-
-## W
-- **write** — write file to orphan branch. src/cmd/write.rs, pages/architecture.md
-- **write_file_to_tree** — high-level tree write. src/git.rs:129
+- **sorted format** — toc/index merge-friendliness invariants. pages/in-tree-mode.md
+- **sources/** — raw materials; gitignored in in-tree mode. pages/in-tree-mode.md
+- **trapperkeeper (branch)** — orphan branch name. src/git.rs
+- **trapperkeeper.json** — config file at repo root. src/config.rs, pages/in-tree-mode.md

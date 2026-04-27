@@ -10,6 +10,47 @@ Updated the wiki to reflect `trk setup codex`. The command enables Codex
 hooks in `.codex/config.toml`, installs a SessionStart hook in
 `.codex/hooks.json`, and adds a Codex rule allowing the `trk` prefix.
 
+## [2026-04-24] fix | Restore hierarchical toc.md
+Earlier flat-sorting of toc.md lost the navigational structure — a table
+of contents without sections isn't really a toc. Reverted toc.md to
+grouped-under-sections form; sections sorted alphabetically by heading,
+entries sorted alphabetically within each section. index.md stays flat
+(letter-headers added no semantic value there). Updated skeleton in
+init.rs, invariants in prime.rs, assertion helper, and added
+`toc_section_adds_in_different_sections_merge_cleanly` test proving
+concurrent adds to different sections merge. 24 tests.
+
+## [2026-04-23] implement | --adopt flag for existing wikis
+Added `trk init --in-tree <path> --adopt` which wires up an existing
+wiki directory without clobbering content. Requires at least one of
+toc/index/log.md to exist. Fills in missing skeleton pieces. Tests for
+adopt (preserve existing, create missing, refuse empty, refuse
+unrelated content, refuse --adopt without --in-tree). 23 tests total.
+
+## [2026-04-23] implement | In-tree mode
+Added `trk init --in-tree <path>` alternative storage where the wiki
+is a committed directory instead of the orphan branch. New src/config.rs
+persists mode in .trapperkeeper.json at repo root. Prime templated to
+be mode-aware. toc.md and index.md moved to flat-sorted merge-friendly
+format; log.md gets merge=union via .gitattributes. Integration tests
+in tests/merge.rs exercise the clean-merge, same-gap-conflict, and
+log-union cases. Driven by collaborator feedback preferring a visible
+docs dir over a gitignored worktree.
+
+## [2026-04-23] plan | In-tree mode for trapperkeeper
+Ratified plan at ~/.claude/plans/crystalline-wobbling-finch.md. Chose
+`.trapperkeeper.json` for config (reuses serde_json), required --in-tree
+path arg (no cross-ecosystem default), gitignored sources/ in in-tree
+mode (preserves "raw materials not in repo" semantics), and flat-sorted
+format for toc/index to minimize merge conflicts. Out of scope: mode
+switching command, prime-from-subdirectory, lint command.
+
+## [2026-04-09] ingest | Karpathy LLM Wiki pattern
+Digested sources/karpathy-llm-wiki.md (original gist) and
+sources/llm-wiki-research.md (implementations + failure modes).
+Created pages/llm-wiki-pattern.md synthesizing the pattern, what works,
+what breaks, and how trapperkeeper maps to it. Updated toc and index.
+
 ## [2026-04-08] ingest | Initial wiki population
 First ingest of the trapperkeeper codebase. Created architecture overview,
 git plumbing reference, and decisions page. Populated toc and index.
