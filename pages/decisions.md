@@ -9,16 +9,21 @@ avoids polluting code commits with wiki updates while keeping everything
 in git. The same pattern litebrite uses for its tracker. Future direction:
 an "admin repo" could replace this for multi-repo wikis.
 
-## Hook-based integration (not CLAUDE.md)
+## Hook-based integration
 
-Context injection happens via SessionStart/PreCompact hooks running
-`trk prime`, not via CLAUDE.md instructions. This means the tool
-controls its own context format and can evolve independently.
+Context injection happens via coding-agent hooks running `trk prime`, not
+via checked-in instruction files. This means the tool controls its own
+context format and can evolve independently.
+
+Claude Code uses SessionStart and PreCompact hooks plus the `Bash(trk:*)`
+permission. Codex uses its hooks feature, a SessionStart hook for
+`startup|resume|clear`, and a rules file that allows the `trk` command
+prefix. Codex currently has no PreCompact hook equivalent.
 
 ## Rust
 
 Consistent with litebrite. Both tools share the same git plumbing
-patterns and Claude Code integration approach.
+patterns and agent-hook integration approach.
 
 ## stdin for write
 

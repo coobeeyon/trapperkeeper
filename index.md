@@ -3,14 +3,15 @@
 ## C
 - **clap** — CLI parsing framework. Cargo.toml, src/main.rs
 - **commit_tree** — create git commit. src/git.rs:113, src/git.rs:118
-- **CLAUDE.md** — not used; hooks replace it. pages/decisions.md
+- **Codex hooks** — SessionStart integration configured by `trk setup codex`. src/cmd/setup_codex.rs, pages/architecture.md
+- **codex_hooks** — Codex feature flag enabled in .codex/config.toml. src/cmd/setup_codex.rs
 
 ## G
 - **git plumbing** — low-level git operations. src/git.rs, pages/git-plumbing.md
 
 ## H
 - **hash_blob** — write blob to git object store. src/git.rs:26
-- **hooks** — SessionStart/PreCompact integration. src/cmd/setup_claude.rs, pages/decisions.md
+- **hooks** — SessionStart/PreCompact integration for supported coding agents. src/cmd/setup_claude.rs, src/cmd/setup_codex.rs, pages/decisions.md
 
 ## I
 - **init** — create orphan branch. src/cmd/init.rs, pages/architecture.md
@@ -30,6 +31,7 @@
 - **prime** — context injection command. src/cmd/prime.rs, pages/architecture.md
 
 ## S
+- **setup_codex** — Codex hook/rules wiring command. src/cmd/setup_codex.rs, pages/architecture.md
 - **setup_claude** — hook wiring command. src/cmd/setup_claude.rs, pages/architecture.md
 - **settings.local.json** — Claude Code config. .claude/settings.local.json, src/cmd/setup_claude.rs
 
