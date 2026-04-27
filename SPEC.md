@@ -104,7 +104,9 @@ Language: Rust. Binary: `trk`.
 
 - `trk init` — create the orphan branch with skeleton files
 - `trk setup claude` — wire hooks into `.claude/settings.local.json`
-- `trk prime` — output wiki context for Claude Code injection
+- `trk setup codex` — wire hooks into `.codex/config.toml`, `.codex/hooks.json`,
+  and `.codex/rules/default.rules`
+- `trk prime` — output wiki context for coding-agent hook injection
 
 ### Integration
 
@@ -117,7 +119,12 @@ Hook-based, following litebrite's pattern:
 - **Bash permission** `Bash(trk:*)` — AI can run trk commands
 
 `trk setup claude` is idempotent and merges with existing configuration.
+`trk setup codex` is idempotent and merges with existing configuration.
 `trk prime` exits silently in repos without trapperkeeper initialized.
+
+Codex uses `.codex/config.toml` to enable hooks, `.codex/hooks.json` for
+the `SessionStart` hook, and `.codex/rules/default.rules` for the `trk`
+allow rule. Codex currently has no `PreCompact` hook equivalent.
 
 ## Wiki Update Triggers
 
@@ -145,4 +152,3 @@ as we learn what's useful.
    how to reach it.
 5. **Git-native** — all state in git. Any machine that clones the repo
    gets the wiki.
-

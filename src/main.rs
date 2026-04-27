@@ -26,12 +26,12 @@ enum Command {
         #[arg(long, requires = "in_tree")]
         adopt: bool,
     },
-    /// Wire hooks into .claude/settings.local.json
+    /// Wire hooks into supported coding-agent configs
     Setup {
         #[command(subcommand)]
         target: SetupTarget,
     },
-    /// Output wiki context for Claude Code injection
+    /// Output wiki context for agent hook injection
     Prime,
 }
 
@@ -39,6 +39,8 @@ enum Command {
 enum SetupTarget {
     /// Configure Claude Code hooks and permissions
     Claude,
+    /// Configure Codex hooks and rules
+    Codex,
 }
 
 fn main() {
@@ -48,6 +50,7 @@ fn main() {
         Command::Init { in_tree, adopt } => cmd::init::run(in_tree, adopt),
         Command::Setup { target } => match target {
             SetupTarget::Claude => cmd::setup_claude::run(),
+            SetupTarget::Codex => cmd::setup_codex::run(),
         },
         Command::Prime => cmd::prime::run(),
     };
