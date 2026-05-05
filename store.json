@@ -1,4 +1,15 @@
 {
-  "items": {},
+  "items": {
+    "lb-vm3n": {
+      "id": "lb-vm3n",
+      "title": "Add Trapper Keeper wiki sync discipline to trk prime",
+      "description": "Goal: add standing `trk prime` guidance so agents treat Trapper Keeper as shared project memory and keep it synchronized proactively, not only when asked.\n\nProblem observed:\n- An agent updated `.trapper_keeper` locally, committed local wiki notes, then discovered the remote `trapperkeeper` branch had newer history.\n- The push became non-fast-forward and required a conflict-heavy merge.\n- Root cause: the agent treated the wiki as local notes first and sync target second.\n\nDesired model:\n- If a repo/workspace has `.trapper_keeper`, treat it as shared project memory, not local scratch.\n- `trk` should prime agents to use a remote-first, continuously synchronized workflow.\n- This applies broadly to any repo using Trapper Keeper, not just one project.\n\nProposed `trk prime` language:\n\n## Trapper Keeper Wiki Discipline\n\nIf a repo/workspace has `.trapper_keeper`, treat it as shared project memory, not local scratch.\n\nBefore reading or editing the wiki:\n- Fetch the wiki remote.\n- Integrate the remote `trapperkeeper` branch before making new edits.\n- Never overwrite remote wiki history with force push unless explicitly instructed.\n\nDuring meaningful work, keep the wiki current:\n- Add or update pages for decisions, PRs, branches, investigations, blockers, and shipped behavior.\n- Update `log.md` with dated work entries.\n- Update `toc.md` for navigable pages.\n- Update `index.md` with searchable concepts, branches, tickets, PRs, and important file/module names.\n- Preserve raw sources under `sources/` when external/raw material is used.\n\nAt the end of wiki-relevant work:\n- Run a conflict-marker / whitespace check.\n- Commit wiki changes separately from service-code changes.\n- Pull/fetch again if needed, merge remote wiki changes, resolve conflicts by preserving useful content from both sides.\n- Push `trapperkeeper`.\n- Report the commit hash and whether the wiki is clean.\n\nDo not wait for the user to ask for routine wiki updates. Do this proactively whenever work creates durable context another session or machine will need.\n\nAdditional guardrails:\n- Do not commit service repo changes with wiki changes.\n- Do not leave `.trapper_keeper` dirty at end of turn unless the user explicitly asks to pause before committing/pushing.\n\nPossible tooling follow-up:\n- Consider adding `trk sync` / `trk publish` helpers so agents do not have to remember the exact git sequence.\n- The prime rule still matters even with tooling: fetch first, write continuously, index, commit, merge, push.\n\nAcceptance criteria:\n- `trk prime` output includes the discipline above, or an equivalent concise version that preserves every operational requirement.\n- Tests covering `prime` output are updated to assert the new sync/proactive-update expectations.\n- Any docs that describe `prime` or wiki update triggers are updated to match.",
+      "item_type": "task",
+      "status": "open",
+      "priority": 1,
+      "created_at": "2026-05-05T23:32:22.192714890Z",
+      "updated_at": "2026-05-05T23:32:22.192714890Z"
+    }
+  },
   "deps": []
 }
