@@ -1,5 +1,13 @@
 # Log
 
+## [2026-05-06] release | Install and publish prime sync update
+Installed the current `trk` binary from commit `6a6e839` with
+`cargo install --path . --force`, replacing `/home/mdaum/.cargo/bin/trk`.
+Confirmed the feature branch
+`lb-vm3n-add-trapper-keeper-wiki-sync-discipline-to-trk-pri` and wiki
+branch `trapperkeeper` were pushed and up to date. Litebrite item
+`lb-vm3n` is closed and synced.
+
 ## [2026-05-06] implement | Prime wiki sync discipline
 Added remote-first Trapper Keeper wiki discipline to `trk prime` for both
 orphan-branch and in-tree modes. The output now tells agents to fetch
