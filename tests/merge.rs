@@ -344,7 +344,19 @@ fn prime_outputs_orphan_mode_text() {
         out.contains("git -C .trapper_keeper add -A"),
         "orphan commit instructions: {out}"
     );
+    assert!(
+        out.contains("default Trapper Keeper layout")
+            || out.contains("default layout"),
+        "orphan mode framed as default: {out}"
+    );
     assert_format_invariants_documented(&out);
+    assert_sync_discipline_documented(&out);
+    // Orphan-specific sync mention: push goes to the trapperkeeper branch.
+    assert!(
+        out.contains("push origin trapperkeeper")
+            || (out.contains("trapperkeeper") && out.contains("push")),
+        "orphan sync should mention pushing to the trapperkeeper branch: {out}"
+    );
 }
 
 #[test]
@@ -363,7 +375,18 @@ fn prime_outputs_in_tree_mode_text() {
         !out.contains("orphan branch"),
         "in-tree output should not mention orphan branch: {out}"
     );
+    assert!(
+        out.contains("alternative") || out.contains("supported"),
+        "in-tree mode should be framed as a supported alternative: {out}"
+    );
     assert_format_invariants_documented(&out);
+    assert_sync_discipline_documented(&out);
+    // In-tree sync should not redirect users to a separate wiki branch.
+    assert!(
+        !out.contains("`trapperkeeper` branch")
+            && !out.contains("`trapperkeeper` orphan branch"),
+        "in-tree sync should not point at the trapperkeeper branch: {out}"
+    );
 }
 
 #[test]
@@ -391,6 +414,44 @@ fn prime_backward_compat_uses_orphan_when_only_branch_exists() {
         "should fall back to orphan output: {out}"
     );
     assert!(out.contains("`trapperkeeper` orphan branch"));
+}
+
+fn assert_sync_discipline_documented(prime_out: &str) {
+    // Wiki framed as shared, not local scratch.
+    assert!(
+        prime_out.contains("shared project memory"),
+        "wiki should be framed as shared project memory: {prime_out}"
+    );
+    // Sync-before-edit expectation.
+    assert!(
+        prime_out.to_ascii_lowercase().contains("fetch"),
+        "sync discipline should require fetching before editing: {prime_out}"
+    );
+    assert!(
+        prime_out.to_ascii_lowercase().contains("before reading or editing"),
+        "sync discipline should describe a pre-edit step: {prime_out}"
+    );
+    // Push-at-end expectation.
+    assert!(
+        prime_out.to_ascii_lowercase().contains("push"),
+        "sync discipline should require pushing wiki changes: {prime_out}"
+    );
+    // Proactive update expectation.
+    assert!(
+        prime_out.to_ascii_lowercase().contains("proactive"),
+        "sync discipline should require proactive updates: {prime_out}"
+    );
+    // Force-push guardrail.
+    assert!(
+        prime_out.contains("--force") || prime_out.to_ascii_lowercase().contains("force push"),
+        "sync discipline should warn against force push: {prime_out}"
+    );
+    // Conflict-marker check.
+    assert!(
+        prime_out.contains("conflict marker") || prime_out.contains("conflict-marker")
+            || prime_out.contains("<<<<<<<"),
+        "sync discipline should mention a conflict-marker check: {prime_out}"
+    );
 }
 
 fn assert_format_invariants_documented(prime_out: &str) {

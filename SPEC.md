@@ -140,6 +140,36 @@ crystallizes:
 On-demand updates are always available. Automatic triggers may evolve
 as we learn what's useful.
 
+## Wiki Sync Discipline
+
+The wiki is shared project memory backed by a remote, not local
+scratch. `trk prime` instructs agents to follow a remote-first,
+continuously synchronized workflow:
+
+- **Fetch first.** Before reading or editing the wiki, fetch and
+  integrate the remote (`trapperkeeper` branch in orphan-branch mode,
+  or the repo's normal branch in in-tree mode). Never overwrite remote
+  history with `--force` unless explicitly instructed.
+- **Write continuously.** During meaningful work, add or update pages
+  for decisions, PRs, branches, investigations, blockers, and shipped
+  behavior. Append a dated entry to `log.md`, keep `toc.md` and
+  `index.md` in step, and preserve raw external material under
+  `sources/`.
+- **Commit, merge, push at the end.** Run a conflict-marker /
+  whitespace check, commit wiki changes separately from code (orphan
+  mode requires this; in-tree keeps them logically separate), pull and
+  resolve any new remote conflicts, then push. Report the commit hash
+  and confirm the wiki is clean.
+- **Be proactive.** Apply this discipline whenever work creates
+  durable context another session or machine will need; do not wait
+  for the user to ask.
+
+Orphan-branch mode is the normal/default layout. In-tree mode is
+supported for repos that want the wiki visible to readers who don't
+know about the gitignored worktree. Coordination repos that host
+wiki/planning state for multiple separate service repos exist but are
+an edge case, not the default mental model.
+
 ## Design Principles
 
 1. **For the AI, by the AI** — the wiki's primary consumer is the LLM.
