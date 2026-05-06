@@ -13,8 +13,8 @@ pub fn run() -> Result<(), String> {
             format!(
                 "The wiki lives on the `{branch}` orphan branch, checked out as a\n\
                  gitignored worktree. This is the default Trapper Keeper layout. Read\n\
-                 and write files there directly. Commit your changes with `git -C {path}\n\
-                 add -A && git -C {path} commit -m \"<message>\"`.",
+                 and write files there directly. Commit your changes with:\n\
+                 `git -C {path} add -A && git -C {path} commit -m \"<message>\"`.",
                 branch = crate::git::BRANCH,
                 path = wiki_path,
             ),

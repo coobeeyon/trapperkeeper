@@ -47,15 +47,13 @@ pub fn run() -> Result<(), String> {
 
     // Write back
     if let Some(parent) = path.parent() {
-        fs::create_dir_all(parent)
-            .map_err(|e| format!("failed to create .claude/: {e}"))?;
+        fs::create_dir_all(parent).map_err(|e| format!("failed to create .claude/: {e}"))?;
     }
 
     let output = serde_json::to_string_pretty(&settings)
         .map_err(|e| format!("failed to serialize settings: {e}"))?;
 
-    fs::write(&path, output + "\n")
-        .map_err(|e| format!("failed to write {SETTINGS_PATH}: {e}"))?;
+    fs::write(&path, output + "\n").map_err(|e| format!("failed to write {SETTINGS_PATH}: {e}"))?;
 
     eprintln!("Configured Claude Code hooks and permissions in {SETTINGS_PATH}");
     Ok(())
@@ -67,9 +65,7 @@ fn ensure_hook(settings: &mut Value, event: &str, command: &str) {
         .as_object_mut()
         .expect("hooks is an object");
 
-    let entries = hooks
-        .entry(event)
-        .or_insert_with(|| json!([]));
+    let entries = hooks.entry(event).or_insert_with(|| json!([]));
 
     let binding = vec![];
     let arr = entries.as_array().unwrap_or(&binding);

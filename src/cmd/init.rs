@@ -108,8 +108,7 @@ fn init_in_tree(path: PathBuf, adopt: bool) -> Result<(), String> {
 
     let pages = path.join("pages");
     let sources = path.join("sources");
-    fs::create_dir_all(&pages)
-        .map_err(|e| format!("failed to create {}: {e}", pages.display()))?;
+    fs::create_dir_all(&pages).map_err(|e| format!("failed to create {}: {e}", pages.display()))?;
     fs::create_dir_all(&sources)
         .map_err(|e| format!("failed to create {}: {e}", sources.display()))?;
 
@@ -128,15 +127,9 @@ fn init_in_tree(path: PathBuf, adopt: bool) -> Result<(), String> {
     config::save(&Config::in_tree(path.clone()))?;
 
     if adopt {
-        eprintln!(
-            "Adopted existing wiki at '{}'",
-            path.display()
-        );
+        eprintln!("Adopted existing wiki at '{}'", path.display());
     } else {
-        eprintln!(
-            "Initialized trapperkeeper in-tree at '{}'",
-            path.display()
-        );
+        eprintln!("Initialized trapperkeeper in-tree at '{}'", path.display());
     }
     eprintln!("Review and commit the new files as part of your next commit.");
     Ok(())
@@ -146,8 +139,7 @@ fn write_file_if_missing(path: &Path, content: &str) -> Result<(), String> {
     if path.exists() {
         return Ok(());
     }
-    fs::write(path, content)
-        .map_err(|e| format!("failed to write {}: {e}", path.display()))
+    fs::write(path, content).map_err(|e| format!("failed to write {}: {e}", path.display()))
 }
 
 fn setup_worktree() -> Result<(), String> {
@@ -173,8 +165,7 @@ fn append_line_if_missing(path: &Path, entry: &str) -> Result<(), String> {
     if !contents.is_empty() && !contents.ends_with('\n') {
         writeln!(f).map_err(|e| format!("failed to write {}: {e}", path.display()))?;
     }
-    writeln!(f, "{entry}")
-        .map_err(|e| format!("failed to write {}: {e}", path.display()))?;
+    writeln!(f, "{entry}").map_err(|e| format!("failed to write {}: {e}", path.display()))?;
     Ok(())
 }
 

@@ -20,11 +20,17 @@ pub struct Config {
 
 impl Config {
     pub fn orphan() -> Self {
-        Self { version: VERSION, mode: Mode::Orphan }
+        Self {
+            version: VERSION,
+            mode: Mode::Orphan,
+        }
     }
 
     pub fn in_tree(path: PathBuf) -> Self {
-        Self { version: VERSION, mode: Mode::InTree { path } }
+        Self {
+            version: VERSION,
+            mode: Mode::InTree { path },
+        }
     }
 
     /// Directory (relative to repo root) where the wiki files live.
@@ -79,7 +85,9 @@ fn parse(value: &Value) -> Result<Config, String> {
                 .get("path")
                 .and_then(Value::as_str)
                 .ok_or("config: in-tree mode requires 'path'")?;
-            Mode::InTree { path: PathBuf::from(path) }
+            Mode::InTree {
+                path: PathBuf::from(path),
+            }
         }
         other => return Err(format!("config: unknown mode '{other}'")),
     };

@@ -18,8 +18,7 @@ pub fn git(args: &[&str]) -> Result<String, String> {
 
 /// Check whether the trapperkeeper branch exists.
 pub fn branch_exists() -> bool {
-    git(&["rev-parse", "--verify", &format!("refs/heads/{BRANCH}")])
-        .is_ok()
+    git(&["rev-parse", "--verify", &format!("refs/heads/{BRANCH}")]).is_ok()
 }
 
 /// Write a blob and return its hash.
@@ -52,7 +51,7 @@ pub fn hash_blob(content: &str) -> Result<String, String> {
 }
 
 /// Create a tree from a list of (mode, type, hash, name) entries.
-pub fn mktree(entries: &[(& str, &str, &str, &str)]) -> Result<String, String> {
+pub fn mktree(entries: &[(&str, &str, &str, &str)]) -> Result<String, String> {
     use std::io::Write;
     let mut child = Command::new("git")
         .args(["mktree"])
