@@ -24,6 +24,7 @@
 - **mode** — orphan vs in-tree storage. src/config.rs, pages/in-tree-mode.md
 - **orphan branch** — default wiki storage. pages/decisions.md, pages/architecture.md
 - **prime** — context injection command. src/cmd/prime.rs, pages/architecture.md
+- **prime sync discipline** — remote-first wiki update guidance emitted by `trk prime`. src/cmd/prime.rs, pages/decisions.md, pages/architecture.md
 - **query** — wiki operation: ask questions against compiled pages. pages/llm-wiki-pattern.md
 - **schema drift** — LLM diverges from wiki conventions over time. pages/llm-wiki-pattern.md
 - **setup_claude** — hook wiring command. src/cmd/setup_claude.rs, pages/architecture.md

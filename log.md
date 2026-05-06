@@ -1,5 +1,13 @@
 # Log
 
+## [2026-05-06] implement | Prime wiki sync discipline
+Added remote-first Trapper Keeper wiki discipline to `trk prime` for both
+orphan-branch and in-tree modes. The output now tells agents to fetch
+before reading/editing, integrate remote wiki changes, update pages, toc,
+index, and log proactively during meaningful work, check conflict markers,
+commit wiki work separately where appropriate, push at the end, and avoid
+force-pushing shared wiki history. Tests cover the new prime expectations.
+
 ## [2026-04-27] update | Record local agent config policy
 After implementing `trk setup codex`, decided generated `.claude/` and
 `.codex/` settings should remain local and gitignored. New clones are

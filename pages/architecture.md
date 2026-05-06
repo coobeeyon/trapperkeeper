@@ -30,7 +30,11 @@ time: orphan branch (default) or in-tree directory.
     .codex/config.toml, .codex/hooks.json, and
     .codex/rules/default.rules. Idempotent and mode-agnostic.
   - **prime.rs** — Loads config, outputs mode-aware instructions for
-    coding-agent hook injection. Silent exit if not initialized.
+    coding-agent hook injection. Silent exit if not initialized. The
+    prime text includes remote-first wiki sync discipline: fetch before
+    wiki reads/edits, proactively update toc/index/log/pages during
+    meaningful work, commit wiki changes separately where appropriate,
+    push at the end, and avoid force-pushing remote wiki history.
 
 ## Data Storage
 

@@ -33,6 +33,18 @@ Generated agent settings are local machine state. `.claude/` and `.codex/`
 are gitignored; each clone should run the relevant setup commands instead
 of committing generated hook/config files.
 
+## Prime carries wiki sync discipline
+
+`trk prime` now teaches agents to treat the repo's Trapper Keeper wiki as
+shared project memory, not local scratch. The guidance is remote-first:
+fetch before reading or editing, integrate remote wiki changes before new
+edits, update toc/index/log/pages proactively during meaningful work, check
+for conflict markers, commit wiki changes separately where practical, push
+at the end, and never force-push remote wiki history unless explicitly
+instructed. The orphan `trapperkeeper` branch remains the default layout;
+in-tree mode is supported as a normal committed directory with analogous
+normal-branch sync guidance.
+
 ## Rust
 
 Consistent with litebrite. Both tools share the same git plumbing
