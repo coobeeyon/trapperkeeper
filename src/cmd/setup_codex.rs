@@ -11,7 +11,7 @@ const STATUS_MESSAGE: &str = "Loading Trapperkeeper wiki context";
 const RULE: &str = r#"prefix_rule(pattern=["trk"], decision="allow")"#;
 
 pub fn run() -> Result<(), String> {
-    ensure_codex_hooks_feature()?;
+    ensure_hooks_feature()?;
     ensure_hooks_json()?;
     ensure_rules()?;
 
@@ -19,7 +19,7 @@ pub fn run() -> Result<(), String> {
     Ok(())
 }
 
-fn ensure_codex_hooks_feature() -> Result<(), String> {
+fn ensure_hooks_feature() -> Result<(), String> {
     let path = PathBuf::from(CONFIG_PATH);
     let content = if path.exists() {
         fs::read_to_string(&path).map_err(|e| format!("failed to read {CONFIG_PATH}: {e}"))?
@@ -27,7 +27,7 @@ fn ensure_codex_hooks_feature() -> Result<(), String> {
         String::new()
     };
 
-    let output = with_codex_hooks_enabled(&content);
+    let output = with_hooks_enabled(&content);
     write_file(&path, &output, ".codex/", CONFIG_PATH)
 }
 
@@ -79,7 +79,7 @@ fn write_file(
     fs::write(path, content).map_err(|e| format!("failed to write {display_path}: {e}"))
 }
 
-fn with_codex_hooks_enabled(content: &str) -> String {
+fn with_hooks_enabled(content: &str) -> String {
     let mut lines: Vec<String> = content.lines().map(str::to_owned).collect();
 
     let Some(features_start) = lines.iter().position(|line| is_table(line, "features")) else {
@@ -87,7 +87,7 @@ fn with_codex_hooks_enabled(content: &str) -> String {
             lines.push(String::new());
         }
         lines.push("[features]".to_string());
-        lines.push("codex_hooks = true".to_string());
+        lines.push("hooks = true".to_string());
         return finish_lines(lines);
     };
 
@@ -98,17 +98,30 @@ fn with_codex_hooks_enabled(content: &str) -> String {
         .find_map(|(idx, line)| is_any_table(line).then_some(idx))
         .unwrap_or(lines.len());
 
-    if let Some(idx) = (features_start + 1..features_end)
-        .find(|idx| is_assignment_to_key(&lines[*idx], "codex_hooks"))
+    for idx in (features_start + 1..features_end).rev() {
+        if is_assignment_to_key(&lines[idx], "codex_hooks") {
+            lines.remove(idx);
+        }
+    }
+
+    let features_end = lines
+        .iter()
+        .enumerate()
+        .skip(features_start + 1)
+        .find_map(|(idx, line)| is_any_table(line).then_some(idx))
+        .unwrap_or(lines.len());
+
+    if let Some(idx) =
+        (features_start + 1..features_end).find(|idx| is_assignment_to_key(&lines[*idx], "hooks"))
     {
         let indent_len = lines[idx]
             .char_indices()
             .find_map(|(i, ch)| (!ch.is_whitespace()).then_some(i))
             .unwrap_or(0);
         let indent = &lines[idx][..indent_len];
-        lines[idx] = format!("{indent}codex_hooks = true");
+        lines[idx] = format!("{indent}hooks = true");
     } else {
-        lines.insert(features_start + 1, "codex_hooks = true".to_string());
+        lines.insert(features_start + 1, "hooks = true".to_string());
     }
 
     finish_lines(lines)
@@ -197,29 +210,26 @@ mod tests {
 
     #[test]
     fn adds_features_table_when_missing() {
-        let actual = with_codex_hooks_enabled("model = \"gpt-5.5\"\n");
+        let actual = with_hooks_enabled("model = \"gpt-5.5\"\n");
+
+        assert_eq!(actual, "model = \"gpt-5.5\"\n\n[features]\nhooks = true\n");
+    }
+
+    #[test]
+    fn adds_hooks_to_existing_features_table() {
+        let actual = with_hooks_enabled("[features]\nfast_mode = true\n[tools]\n");
 
         assert_eq!(
             actual,
-            "model = \"gpt-5.5\"\n\n[features]\ncodex_hooks = true\n"
+            "[features]\nhooks = true\nfast_mode = true\n[tools]\n"
         );
     }
 
     #[test]
-    fn adds_codex_hooks_to_existing_features_table() {
-        let actual = with_codex_hooks_enabled("[features]\nfast_mode = true\n[tools]\n");
+    fn replaces_existing_legacy_codex_hooks_feature() {
+        let actual = with_hooks_enabled("[features]\n  codex_hooks = false\n");
 
-        assert_eq!(
-            actual,
-            "[features]\ncodex_hooks = true\nfast_mode = true\n[tools]\n"
-        );
-    }
-
-    #[test]
-    fn enables_existing_codex_hooks_feature() {
-        let actual = with_codex_hooks_enabled("[features]\n  codex_hooks = false\n");
-
-        assert_eq!(actual, "[features]\n  codex_hooks = true\n");
+        assert_eq!(actual, "[features]\nhooks = true\n");
     }
 
     #[test]
