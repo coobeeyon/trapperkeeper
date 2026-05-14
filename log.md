@@ -1,5 +1,12 @@
 # Log
 
+## [2026-05-14] groom | Comprehensive wiki refresh
+Audited the wiki against the current source and SPEC. Removed stale
+`trk write`/tree-mutation notes, added Codex setup coverage, added
+retrieval hooks to concept pages, deleted the orphan `pages/test.md`, and
+rebuilt toc/index entries around current commands, config files, and hook
+targets.
+
 ## [2026-05-14] implement | Retrieval-oriented wiki prompt
 Updated `trk prime` guidance so future agents treat the wiki as a retrieval
 system. The prompt now calls for likely-search-phrase index entries,

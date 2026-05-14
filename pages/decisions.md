@@ -1,5 +1,12 @@
 # Decisions
 
+Retrieval hooks: concepts: orphan branch default, in-tree mode,
+agent-specific setup, hook-based integration, Rust CLI, thin CLI,
+AI-maintained wiki. Key files: `SPEC.md`, `src/main.rs`, `src/cmd/init.rs`,
+`src/cmd/setup_claude.rs`, `src/cmd/setup_codex.rs`, `src/cmd/prime.rs`.
+Useful when evaluating whether a change matches the project's existing
+design rationale.
+
 Key decisions and the reasoning behind them.
 
 ## Orphan branch for storage (default)
@@ -44,6 +51,13 @@ at the end, and never force-push remote wiki history unless explicitly
 instructed. The orphan `trapperkeeper` branch remains the default layout;
 in-tree mode is supported as a normal committed directory with analogous
 normal-branch sync guidance.
+
+## Agent-specific setup commands
+
+Setup is split by target: `trk setup claude` and `trk setup codex`.
+Claude and Codex use different config files and hook semantics, so keeping
+target-specific modules avoids a lowest-common-denominator abstraction.
+Both commands are idempotent and preserve unrelated existing settings.
 
 ## Rust
 

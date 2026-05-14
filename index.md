@@ -1,39 +1,56 @@
 # Index
 <!-- sorted alphabetically, one entry per line, no section headers -->
 
+- **--adopt** — wrap an existing in-tree wiki directory without clobbering files. src/cmd/init.rs, pages/in-tree-mode.md
+- **.claude/settings.local.json** — Claude Code hook and permission target. src/cmd/setup_claude.rs, pages/setup-integrations.md
+- **.codex/config.toml** — Codex feature flag target; setup ensures `[features] hooks = true`. src/cmd/setup_codex.rs, pages/setup-integrations.md
+- **.codex/hooks.json** — Codex SessionStart hook target for `trk prime`. src/cmd/setup_codex.rs, pages/setup-integrations.md
+- **.codex/rules/default.rules** — Codex rule target; setup appends the `trk` prefix allow rule. src/cmd/setup_codex.rs, pages/setup-integrations.md
+- **.trapper_keeper** — default orphan-mode worktree path. src/cmd/init.rs, src/config.rs, pages/architecture.md, pages/git-plumbing.md
+- **.trapperkeeper.json** — repo-root config file for storage mode and in-tree path. src/config.rs, pages/in-tree-mode.md
 - **adopt** — wrap an existing wiki dir with `--adopt`. src/cmd/init.rs, pages/in-tree-mode.md
+- **agent hooks** — setup target wiring for injecting `trk prime`. pages/setup-integrations.md
+- **Bash(trk:*)** — Claude Code permission added by `trk setup claude`. src/cmd/setup_claude.rs, pages/setup-integrations.md
 - **clap** — CLI parsing framework. Cargo.toml, src/main.rs
-- **CLAUDE.md** — not used; hooks replace it. pages/decisions.md
-- **Codex hooks** — SessionStart integration configured by `trk setup codex`. src/cmd/setup_codex.rs, pages/architecture.md
-- **codex_hooks** — Codex feature flag enabled in .codex/config.toml. src/cmd/setup_codex.rs
-- **commit_tree** — create git commit. src/git.rs
+- **CLAUDE.md** — not used; hooks replace static instruction files. pages/decisions.md
+- **Codex hooks** — `.codex/hooks.json` SessionStart integration. src/cmd/setup_codex.rs, pages/setup-integrations.md
+- **codex_hooks** — legacy Codex feature key removed from `[features]` by setup. src/cmd/setup_codex.rs, pages/setup-integrations.md
+- **commit_tree** — create the initial orphan-branch commit. src/git.rs, pages/git-plumbing.md
 - **config** — mode/path persistence in `.trapperkeeper.json`. src/config.rs, pages/in-tree-mode.md
 - **durable wiki updates** — threshold for recording architecture, invariants, decisions, traps, and file-location knowledge. src/cmd/prime.rs, SPEC.md, pages/architecture.md
-- **git plumbing** — low-level git operations. src/git.rs, pages/git-plumbing.md
-- **hash_blob** — write blob to git object store. src/git.rs
-- **hooks** — SessionStart/PreCompact integration for supported coding agents. src/cmd/setup_claude.rs, src/cmd/setup_codex.rs, pages/decisions.md
+- **git plumbing** — low-level git operations for orphan initialization. src/git.rs, pages/git-plumbing.md
+- **hash_blob** — write initial skeleton content to the git object store. src/git.rs, pages/git-plumbing.md
+- **hooks** — SessionStart/PreCompact integration for agent context injection. pages/setup-integrations.md
 - **in-tree mode** — wiki as committed directory. src/cmd/init.rs, pages/in-tree-mode.md
 - **ingest** — wiki operation: add source, update pages. pages/llm-wiki-pattern.md
-- **init** — create wiki (orphan branch or in-tree dir). src/cmd/init.rs, pages/architecture.md
+- **init** — create wiki storage in orphan or in-tree mode. src/cmd/init.rs, pages/architecture.md
 - **Karpathy LLM Wiki** — compile-don't-retrieve pattern. pages/llm-wiki-pattern.md, sources/karpathy-llm-wiki.md
 - **lint** — wiki operation: health check for contradictions/orphans. pages/llm-wiki-pattern.md
-- **litebrite** — reference implementation. ../litebrite, SPEC.md, pages/decisions.md
+- **litebrite** — reference implementation for git-native tracker patterns. ../litebrite, SPEC.md, pages/decisions.md
 - **LLM Wiki pattern** — three-layer architecture (raw/wiki/schema). pages/llm-wiki-pattern.md
-- **ls_tree** — read tree entries. src/git.rs
 - **merge=union** — gitattributes setting for append-only log.md. pages/in-tree-mode.md
-- **mktree** — build git tree. src/git.rs
+- **mktree** — build initial wiki trees from blob entries. src/git.rs, pages/git-plumbing.md
 - **mode** — orphan vs in-tree storage. src/config.rs, pages/in-tree-mode.md
-- **orphan branch** — default wiki storage. pages/decisions.md, pages/architecture.md
+- **orphan branch** — default wiki storage on `trapperkeeper`. pages/decisions.md, pages/architecture.md, pages/git-plumbing.md
+- **PreCompact** — Claude Code hook event used to refresh `trk prime` before compaction. src/cmd/setup_claude.rs, pages/setup-integrations.md
+- **prefix_rule(pattern=["trk"], decision="allow")** — Codex permission rule installed by setup. src/cmd/setup_codex.rs, pages/setup-integrations.md
 - **prime** — context injection command. src/cmd/prime.rs, pages/architecture.md
 - **prime sync discipline** — remote-first wiki update guidance emitted by `trk prime`. src/cmd/prime.rs, pages/decisions.md, pages/architecture.md
 - **query** — wiki operation: ask questions against compiled pages. pages/llm-wiki-pattern.md
 - **retrieval hooks** — page-top concepts/files/useful-when cues for deciding whether to read a wiki page. src/cmd/prime.rs, SPEC.md, pages/architecture.md
 - **retrieval-oriented wiki prompt** — `trk prime` guidance for search-oriented toc/index/page maintenance. src/cmd/prime.rs, tests/merge.rs, pages/architecture.md
 - **schema drift** — LLM diverges from wiki conventions over time. pages/llm-wiki-pattern.md
-- **setup_claude** — hook wiring command. src/cmd/setup_claude.rs, pages/architecture.md
-- **setup_codex** — Codex hook/rules wiring command. src/cmd/setup_codex.rs, pages/architecture.md
-- **settings.local.json** — Claude Code config. .claude/settings.local.json, src/cmd/setup_claude.rs
+- **SessionStart** — agent hook event used to inject `trk prime` at startup/resume. src/cmd/setup_claude.rs, src/cmd/setup_codex.rs, pages/setup-integrations.md
+- **settings.local.json** — Claude Code config. .claude/settings.local.json, src/cmd/setup_claude.rs, pages/setup-integrations.md
+- **setup claude** — hook wiring command for Claude Code. src/cmd/setup_claude.rs, pages/setup-integrations.md
+- **setup codex** — hook/rule wiring command for Codex. src/cmd/setup_codex.rs, pages/setup-integrations.md
+- **setup_claude** — module implementing Claude Code config updates. src/cmd/setup_claude.rs, pages/setup-integrations.md
+- **setup_codex** — module implementing Codex config, hook, and rule updates. src/cmd/setup_codex.rs, pages/setup-integrations.md
 - **sorted format** — toc/index merge-friendliness invariants. pages/in-tree-mode.md
 - **sources/** — raw materials; gitignored in in-tree mode. pages/in-tree-mode.md
-- **trapperkeeper (branch)** — orphan branch name. src/git.rs
-- **trapperkeeper.json** — config file at repo root. src/config.rs, pages/in-tree-mode.md
+- **trapperkeeper (branch)** — orphan branch name. src/git.rs, pages/git-plumbing.md
+- **trk init** — initialize wiki storage and config. src/cmd/init.rs, pages/architecture.md
+- **trk prime** — print mode-aware wiki instructions; silent when uninitialized. src/cmd/prime.rs, pages/architecture.md
+- **trk setup claude** — configure Claude Code hooks and `Bash(trk:*)`. src/cmd/setup_claude.rs, pages/setup-integrations.md
+- **trk setup codex** — configure Codex hooks feature, SessionStart hook, and rules. src/cmd/setup_codex.rs, pages/setup-integrations.md
+- **update_ref** — advance `refs/heads/trapperkeeper` during orphan init. src/git.rs, pages/git-plumbing.md

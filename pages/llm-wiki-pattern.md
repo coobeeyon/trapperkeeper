@@ -1,5 +1,12 @@
 # LLM Wiki Pattern
 
+Retrieval hooks: concepts: Karpathy LLM wiki, compile-don't-retrieve,
+raw/wiki/schema layers, ingest/query/lint operations, schema drift,
+knowledge rot, retrieval-oriented wiki. Key files:
+`sources/karpathy-llm-wiki.md`, `sources/llm-wiki-research.md`, `SPEC.md`,
+`src/cmd/prime.rs`. Useful when changing the philosophy of what the wiki
+should contain or how agents should maintain it.
+
 Andrej Karpathy published a [gist](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f)
 on 2026-04-04 describing a pattern where an LLM incrementally builds and
 maintains a persistent wiki from raw sources, rather than doing RAG at

@@ -1,5 +1,12 @@
 # In-Tree Mode
 
+Retrieval hooks: concepts: `trk init --in-tree`, `--adopt`, committed wiki
+directory, `.trapperkeeper.json`, `sources/`, `merge=union`, sorted
+toc/index format. Key files: `src/cmd/init.rs`, `src/config.rs`,
+`src/cmd/prime.rs`, `tests/merge.rs`, `SPEC.md`. Useful when changing
+storage mode behavior, adopting existing wiki directories, or resolving
+wiki merge conflicts.
+
 Alternative storage mode where the wiki lives as a committed directory
 in the repo instead of on the `trapperkeeper` orphan branch. Chosen once
 at `trk init` time; orphan remains the default.
@@ -117,11 +124,20 @@ Orphan mode writes `{"version": 1, "mode": "orphan"}`. For backward
 compat, if the config file is absent but the `trapperkeeper` branch
 exists, the tool treats that as orphan mode.
 
+## Runtime behavior
+
+`src/config.rs` persists the selected mode in `.trapperkeeper.json`.
+`Config::wiki_path()` returns `.trapper_keeper` for orphan mode and the
+configured path for in-tree mode. `trk prime` uses that path in every
+instruction it prints, so the same agent workflow applies to both modes:
+read `toc.md` and `index.md`, edit pages directly, update log/toc/index
+together, and commit through the mode's normal git workflow.
+
 ## Limitations and out-of-scope
 
 - **No mode switch** today. To change modes, manually delete the wiki
   directory (or orphan branch) and the config file, then re-init.
-- **Prime assumes cwd = repo root.** Existing latent issue; in-tree
-  paths amplify it slightly. Fix separately.
-- **No `trk check`** command to validate format invariants. The AI
+- **Prime assumes git can resolve repo root from cwd.** It calls git
+  through `src/config.rs`; the printed paths are repo-root relative.
+- **No `trk check`** command validates format invariants. The AI
   maintains them by convention.
