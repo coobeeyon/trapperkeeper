@@ -20,6 +20,16 @@
       "created_at": "2026-04-08T17:00:58.208025268Z",
       "updated_at": "2026-04-08T17:09:12.279003589Z"
     },
+    "lb-b2cp": {
+      "id": "lb-b2cp",
+      "title": "Make wiki prompt retrieval-oriented",
+      "description": "Goal: Revise the Trapperkeeper prime/session prompt so agents maintain toc.md and index.md for retrieval value, not just mechanical bookkeeping.\\nContext: User feedback from my2048 showed toc.md and index.md were only mildly useful because the prompt emphasizes consistency but not search-oriented entries. Existing prompt text lives in src/cmd/prime.rs; SPEC.md describes toc/index purpose; tests/merge.rs asserts prime output contains format guidance.\\nRequirements: Update the generated wiki instructions to say the wiki is a retrieval system, add an index quality bar focused on phrases future agents would search before editing code, require or strongly encourage page-level retrieval hooks with concepts/files/useful-when cues, and add a value threshold for wiki updates so agents record durable architecture, decisions, invariants, file ownership, and traps instead of noisy transcript notes. Keep current format invariants for one-line toc/index entries, sorted index, sorted toc sections, and log append behavior. Update tests and docs where they pin or describe the prompt.\\nAcceptance: trk prime output includes concrete guidance for search-oriented index entries, retrieval hooks, and durable-knowledge update thresholds; existing merge/prime tests pass or are updated to cover the new language; SPEC.md or equivalent docs reflect the intent that toc/index should reduce future code exploration.\\nOut of scope: Building automated indexing, changing wiki file formats, or modifying storage modes.",
+      "item_type": "task",
+      "status": "open",
+      "priority": 2,
+      "created_at": "2026-05-14T13:18:37.084135076Z",
+      "updated_at": "2026-05-14T13:18:37.084135076Z"
+    },
     "lb-g02t": {
       "id": "lb-g02t",
       "title": "trk init — orphan branch with skeleton",
