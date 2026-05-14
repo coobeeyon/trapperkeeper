@@ -45,11 +45,10 @@
       "title": "Groom Trapperkeeper wiki",
       "description": "Audit and update .trapper_keeper wiki pages, toc, index, and log so they reflect the current repository.",
       "item_type": "task",
-      "status": "open",
+      "status": "closed",
       "priority": 2,
-      "claimed_by": "Michael Daum",
       "created_at": "2026-05-14T13:47:34.733485438Z",
-      "updated_at": "2026-05-14T13:47:37.741278583Z"
+      "updated_at": "2026-05-14T13:52:13.740212372Z"
     },
     "lb-pdje": {
       "id": "lb-pdje",
