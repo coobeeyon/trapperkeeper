@@ -8,6 +8,7 @@
 - **codex_hooks** — Codex feature flag enabled in .codex/config.toml. src/cmd/setup_codex.rs
 - **commit_tree** — create git commit. src/git.rs
 - **config** — mode/path persistence in `.trapperkeeper.json`. src/config.rs, pages/in-tree-mode.md
+- **durable wiki updates** — threshold for recording architecture, invariants, decisions, traps, and file-location knowledge. src/cmd/prime.rs, SPEC.md, pages/architecture.md
 - **git plumbing** — low-level git operations. src/git.rs, pages/git-plumbing.md
 - **hash_blob** — write blob to git object store. src/git.rs
 - **hooks** — SessionStart/PreCompact integration for supported coding agents. src/cmd/setup_claude.rs, src/cmd/setup_codex.rs, pages/decisions.md
@@ -26,6 +27,8 @@
 - **prime** — context injection command. src/cmd/prime.rs, pages/architecture.md
 - **prime sync discipline** — remote-first wiki update guidance emitted by `trk prime`. src/cmd/prime.rs, pages/decisions.md, pages/architecture.md
 - **query** — wiki operation: ask questions against compiled pages. pages/llm-wiki-pattern.md
+- **retrieval hooks** — page-top concepts/files/useful-when cues for deciding whether to read a wiki page. src/cmd/prime.rs, SPEC.md, pages/architecture.md
+- **retrieval-oriented wiki prompt** — `trk prime` guidance for search-oriented toc/index/page maintenance. src/cmd/prime.rs, tests/merge.rs, pages/architecture.md
 - **schema drift** — LLM diverges from wiki conventions over time. pages/llm-wiki-pattern.md
 - **setup_claude** — hook wiring command. src/cmd/setup_claude.rs, pages/architecture.md
 - **setup_codex** — Codex hook/rules wiring command. src/cmd/setup_codex.rs, pages/architecture.md

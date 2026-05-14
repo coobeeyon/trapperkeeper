@@ -1,5 +1,11 @@
 # Log
 
+## [2026-05-14] implement | Retrieval-oriented wiki prompt
+Updated `trk prime` guidance so future agents treat the wiki as a retrieval
+system. The prompt now calls for likely-search-phrase index entries,
+page-top retrieval hooks, and a durable-knowledge threshold for wiki updates.
+Updated SPEC, skeleton toc/index comments, tests, and architecture wiki notes.
+
 ## [2026-05-06] release | Install and publish prime sync update
 Installed the current `trk` binary from commit `6a6e839` with
 `cargo install --path . --force`, replacing `/home/mdaum/.cargo/bin/trk`.
