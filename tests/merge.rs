@@ -140,7 +140,10 @@ fn orphan_init_creates_branch_worktree_and_config() {
         repo.path.join(".trapper_keeper/toc.md").exists(),
         "worktree populated"
     );
-    assert!(repo.path.join(".trapperkeeper.json").exists(), "config file");
+    assert!(
+        repo.path.join(".trapperkeeper.json").exists(),
+        "config file"
+    );
 
     let cfg = fs::read_to_string(repo.path.join(".trapperkeeper.json")).unwrap();
     assert!(cfg.contains("\"mode\": \"orphan\""));
@@ -216,9 +219,17 @@ fn adopt_wires_up_existing_wiki_without_clobbering() {
     let repo = Repo::new();
     let wiki = repo.path.join(WIKI);
     fs::create_dir_all(wiki.join("pages")).unwrap();
-    fs::write(wiki.join("toc.md"), "# Table of Contents\n\n- [Existing](pages/existing.md) — kept\n").unwrap();
+    fs::write(
+        wiki.join("toc.md"),
+        "# Table of Contents\n\n- [Existing](pages/existing.md) — kept\n",
+    )
+    .unwrap();
     fs::write(wiki.join("index.md"), "# Index\n\n- **existing** — kept\n").unwrap();
-    fs::write(wiki.join("log.md"), "# Log\n\n## [2026-04-01] pre | already there\n").unwrap();
+    fs::write(
+        wiki.join("log.md"),
+        "# Log\n\n## [2026-04-01] pre | already there\n",
+    )
+    .unwrap();
     fs::write(wiki.join("pages/existing.md"), "# Existing Page\n").unwrap();
 
     repo.trk(&["init", "--in-tree", WIKI, "--adopt"]);
@@ -229,7 +240,8 @@ fn adopt_wires_up_existing_wiki_without_clobbering() {
         "adopt must not clobber existing toc.md"
     );
     assert!(
-        repo.read(&format!("{WIKI}/log.md")).contains("already there"),
+        repo.read(&format!("{WIKI}/log.md"))
+            .contains("already there"),
         "adopt must not clobber existing log.md"
     );
     assert!(repo.path.join(WIKI).join("pages/existing.md").exists());
@@ -263,7 +275,9 @@ fn adopt_creates_missing_skeleton_files() {
     // log.md preserved, toc/index created from skeleton.
     assert!(repo.path.join(WIKI).join("toc.md").exists());
     assert!(repo.path.join(WIKI).join("index.md").exists());
-    assert!(repo.read(&format!("{WIKI}/toc.md")).contains("Hierarchical"));
+    assert!(repo
+        .read(&format!("{WIKI}/toc.md"))
+        .contains("Hierarchical"));
     assert!(repo.read(&format!("{WIKI}/index.md")).contains("Flat"));
 }
 
@@ -355,8 +369,7 @@ fn prime_outputs_in_tree_mode_text() {
 
     assert!(out.contains(&format!("`{WIKI}/`")), "wiki path: {out}");
     assert!(
-        out.contains("normal committed directory")
-            || out.contains("normal git workflow"),
+        out.contains("normal committed directory") || out.contains("normal git workflow"),
         "in-tree language: {out}"
     );
     assert!(
@@ -413,6 +426,22 @@ fn assert_format_invariants_documented(prime_out: &str) {
         prime_out.contains("merge=union"),
         "log.md merge=union documented: {prime_out}"
     );
+    assert!(
+        prime_out.contains("retrieval system"),
+        "wiki retrieval purpose documented: {prime_out}"
+    );
+    assert!(
+        prime_out.contains("future agents") && prime_out.contains("likely search phrases"),
+        "search-oriented index guidance missing: {prime_out}"
+    );
+    assert!(
+        prime_out.contains("retrieval hooks") && prime_out.contains("useful-when"),
+        "page retrieval hook guidance missing: {prime_out}"
+    );
+    assert!(
+        prime_out.contains("durable knowledge") && prime_out.contains("surprising traps"),
+        "durable update threshold missing: {prime_out}"
+    );
 }
 
 // --------------------------- merge behavior --------------------------
@@ -425,7 +454,14 @@ fn non_adjacent_toc_adds_merge_cleanly() {
     repo.trk(&["init", "--in-tree", WIKI]);
     let toc = format!("{WIKI}/toc.md");
 
-    let base = ["- apples", "- bananas", "- grapes", "- oranges", "- pears", "- zebras"];
+    let base = [
+        "- apples",
+        "- bananas",
+        "- grapes",
+        "- oranges",
+        "- pears",
+        "- zebras",
+    ];
     repo.write(&toc, &wiki_body(&base));
     repo.commit_all("base toc");
 
@@ -547,7 +583,10 @@ fn same_entry_edits_conflict() {
 
     repo.checkout("main");
     repo.checkout_new("branch-b");
-    repo.write(&toc, &wiki_body(&["- apples — a fruit that grows on trees"]));
+    repo.write(
+        &toc,
+        &wiki_body(&["- apples — a fruit that grows on trees"]),
+    );
     repo.commit_all("edit b");
 
     assert!(

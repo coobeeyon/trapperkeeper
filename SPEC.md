@@ -2,7 +2,9 @@
 
 An LLM-maintained wiki system for codebases. The wiki is primarily for
 the AI's own use — compiled knowledge that saves tokens, broadens
-context, and eliminates redundant exploration across sessions.
+context, and eliminates redundant exploration across sessions. Treat the
+wiki as a retrieval system: `toc.md`, `index.md`, and page hooks should
+make the right compiled knowledge findable before an agent reads source.
 
 Inspired by [Karpathy's LLM Wiki pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f).
 
@@ -54,13 +56,17 @@ sources/          # raw materials that need a home
 Top-down navigation. Describes the semantic hierarchy of the codebase —
 not the filesystem layout, but how things relate and what they do.
 Includes summaries. Reading the toc should orient the AI to the entire
-project without touching a single source file.
+project without touching a single source file. Entries should help an
+agent choose the right page quickly, not merely prove that a page exists.
 
 #### index.md
 
 Bottom-up cross-reference. Look up a concept and find everywhere it
 appears — wiki pages, source files, log entries. This is the AI's
-primary lookup tool. A good index eliminates exploration.
+primary lookup tool. A good index eliminates exploration by using the
+phrases future agents are likely to search for: aliases, file names,
+commands, config keys, error text, domain concepts, and "where is X
+handled?" questions.
 
 #### log.md
 
@@ -79,7 +85,9 @@ decision records (the *why* behind choices), concept pages (cross-cutting
 concerns spanning multiple files).
 
 These pages exist to replace expensive exploration. A good page saves
-dozens of tool calls.
+dozens of tool calls. Pages should include retrieval hooks near the top:
+concepts, key files, commands/config, and "useful when" cues that help an
+agent decide whether the page is worth reading.
 
 #### sources/
 
@@ -139,6 +147,11 @@ crystallizes:
 
 On-demand updates are always available. Automatic triggers may evolve
 as we learn what's useful.
+
+The threshold is durable retrieval value. Record architecture, file
+ownership, invariants, cross-file flows, operational commands, surprising
+traps, and decisions. Avoid noisy transcript notes, obvious edits, and
+facts that are cheaper to rediscover than to maintain.
 
 ## Design Principles
 

@@ -30,8 +30,9 @@ pub fn run() -> Result<(), String> {
 
 This repo has an LLM-maintained wiki at `{path}/` in the repo root.
 The wiki is yours — you maintain it, and you are its primary consumer.
-It exists so you don't re-derive understanding that a previous session
-already worked out. A good wiki page saves dozens of tool calls.
+Treat it as a retrieval system: it exists so future agents can search
+before reading source and avoid re-deriving understanding that a previous
+session already worked out. A good wiki page saves dozens of tool calls.
 
 {commit_block}
 
@@ -40,7 +41,7 @@ already worked out. A good wiki page saves dozens of tool calls.
 Before reading source files to understand the codebase, check the wiki first.
 
 - `{path}/toc.md` — find the relevant page
-- `{path}/index.md` — look up a concept
+- `{path}/index.md` — search by the words a future agent would actually use
 - `{path}/pages/<page>.md` — read compiled knowledge
 
 If the wiki answers your question, use it. If it's incomplete or wrong,
@@ -54,9 +55,14 @@ These are the key moments:
 - **Implementation finished** — record *what* was built and how
 - **Review or debugging done** — record *what you learned*
 
-On every update, maintain consistency across all three:
+Only add durable knowledge: architecture, ownership boundaries, invariants,
+cross-file flows, operational commands, surprising traps, decisions, and
+file locations future agents will need. Do not log transcript notes,
+obvious edits, or facts that are cheaper to rediscover than to maintain.
+
+On every durable update, maintain consistency across all three:
 - `toc.md` — navigation with page summaries
-- `index.md` — concept-to-location cross-reference
+- `index.md` — search phrases and aliases mapped to pages/files
 - `log.md` — append a dated entry: `## [YYYY-MM-DD] verb | summary`
 
 This bookkeeping is where the real value compounds. Do not skip it.
@@ -75,8 +81,11 @@ that the two files serve different purposes and look different:
   to the same section; that's an accepted cost for navigability.
 - **index.md — flat concept lookup.** One entry per line, sorted
   alphabetically by entry text (ASCII-lowercased, ties by raw bytes).
-  No section headers — letter-headers like `## A` cluster adds and add
-  no semantic value. Keep the file in sort order after every edit.
+  Write entries for likely search phrases, synonyms, file names, commands,
+  config keys, error text, domain concepts, and where-is-this-handled
+  questions. Each entry should point to the best wiki page and, when useful,
+  source files. No section headers — letter-headers like `## A` cluster adds
+  and add no semantic value. Keep the file in sort order after every edit.
 - **log.md — append-only chronological.** Merges via `merge=union`
   (configured in `.gitattributes`), so concurrent appends always merge
   cleanly. Not sorted.
@@ -86,7 +95,9 @@ that the two files serve different purposes and look different:
 Pages live in `{path}/pages/`. A page should capture synthesized understanding,
 not raw notes. Good pages: architecture overviews, module summaries,
 decision records (the *why* behind choices), concept pages that span
-multiple files.
+multiple files. Add retrieval hooks near the top: concepts, key files,
+commands/config, and useful-when cues that help an agent decide whether
+to read the page.
 ",
         path = wiki_path,
         commit_block = commit_block,
