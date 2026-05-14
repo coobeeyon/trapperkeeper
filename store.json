@@ -27,8 +27,9 @@
       "item_type": "task",
       "status": "open",
       "priority": 2,
+      "claimed_by": "Michael Daum",
       "created_at": "2026-05-14T13:18:37.084135076Z",
-      "updated_at": "2026-05-14T13:18:37.084135076Z"
+      "updated_at": "2026-05-14T13:26:52.105652158Z"
     },
     "lb-g02t": {
       "id": "lb-g02t",
