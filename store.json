@@ -47,8 +47,9 @@
       "item_type": "task",
       "status": "open",
       "priority": 2,
+      "claimed_by": "Michael Daum",
       "created_at": "2026-06-11T20:27:17.442852687Z",
-      "updated_at": "2026-06-11T20:27:17.442852687Z"
+      "updated_at": "2026-06-11T20:27:22.627007709Z"
     },
     "lb-mrwx": {
       "id": "lb-mrwx",
