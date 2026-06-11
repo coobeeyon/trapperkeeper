@@ -83,3 +83,10 @@ what breaks, and how trapperkeeper maps to it. Updated toc and index.
 ## [2026-04-08] ingest | Initial wiki population
 First ingest of the trapperkeeper codebase. Created architecture overview,
 git plumbing reference, and decisions page. Populated toc and index.
+
+## [2026-06-11] implement | README installation instructions
+Added `README.md` as the user-facing entry point for installing `trk`,
+running initial `trk init` flows, wiring Claude Code or Codex hooks,
+using `trk prime`, and committing wiki changes in orphan versus in-tree
+mode. Updated architecture/index hooks so future agents can find the docs
+contract quickly.

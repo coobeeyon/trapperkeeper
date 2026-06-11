@@ -11,6 +11,7 @@
 - **adopt** — wrap an existing wiki dir with `--adopt`. src/cmd/init.rs, pages/in-tree-mode.md
 - **agent hooks** — setup target wiring for injecting `trk prime`. pages/setup-integrations.md
 - **Bash(trk:*)** — Claude Code permission added by `trk setup claude`. src/cmd/setup_claude.rs, pages/setup-integrations.md
+- **cargo install --git https://github.com/coobeeyon/trapperkeeper.git --bin trk** — GitHub install command for the `trk` binary. README.md, pages/architecture.md
 - **clap** — CLI parsing framework. Cargo.toml, src/main.rs
 - **CLAUDE.md** — not used; hooks replace static instruction files. pages/decisions.md
 - **Codex hooks** — `.codex/hooks.json` SessionStart integration. src/cmd/setup_codex.rs, pages/setup-integrations.md
@@ -23,6 +24,7 @@
 - **hooks** — SessionStart/PreCompact integration for agent context injection. pages/setup-integrations.md
 - **in-tree mode** — wiki as committed directory. src/cmd/init.rs, pages/in-tree-mode.md
 - **ingest** — wiki operation: add source, update pages. pages/llm-wiki-pattern.md
+- **installation instructions** — README entry point for installing `trk`, initializing a wiki, and wiring agent hooks. README.md, pages/architecture.md
 - **init** — create wiki storage in orphan or in-tree mode. src/cmd/init.rs, pages/architecture.md
 - **Karpathy LLM Wiki** — compile-don't-retrieve pattern. pages/llm-wiki-pattern.md, sources/karpathy-llm-wiki.md
 - **lint** — wiki operation: health check for contradictions/orphans. pages/llm-wiki-pattern.md
@@ -37,6 +39,7 @@
 - **prime** — context injection command. src/cmd/prime.rs, pages/architecture.md
 - **prime sync discipline** — remote-first wiki update guidance emitted by `trk prime`. src/cmd/prime.rs, pages/decisions.md, pages/architecture.md
 - **query** — wiki operation: ask questions against compiled pages. pages/llm-wiki-pattern.md
+- **README.md** — user-facing overview, installation, quick start, storage modes, and wiki commit workflow. README.md, pages/architecture.md
 - **retrieval hooks** — page-top concepts/files/useful-when cues for deciding whether to read a wiki page. src/cmd/prime.rs, SPEC.md, pages/architecture.md
 - **retrieval-oriented wiki prompt** — `trk prime` guidance for search-oriented toc/index/page maintenance. src/cmd/prime.rs, tests/merge.rs, pages/architecture.md
 - **schema drift** — LLM diverges from wiki conventions over time. pages/llm-wiki-pattern.md
@@ -54,3 +57,5 @@
 - **trk setup claude** — configure Claude Code hooks and `Bash(trk:*)`. src/cmd/setup_claude.rs, pages/setup-integrations.md
 - **trk setup codex** — configure Codex hooks feature, SessionStart hook, and rules. src/cmd/setup_codex.rs, pages/setup-integrations.md
 - **update_ref** — advance `refs/heads/trapperkeeper` during orphan init. src/git.rs, pages/git-plumbing.md
+- **user-facing docs** — README covers install and first-run setup for humans. README.md, pages/architecture.md
+- **wiki commit workflow** — orphan mode uses `git -C .trapper_keeper`; in-tree mode commits wiki files with the repo. README.md, pages/architecture.md

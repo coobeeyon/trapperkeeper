@@ -1,12 +1,13 @@
 # Architecture
 
 Retrieval hooks: concepts: `trk`, `trk init`, `trk prime`, `trk setup
-claude`, `trk setup codex`, retrieval-oriented wiki prompt, remote-first
-wiki sync discipline, storage mode, wiki update threshold,
-toc/index/page hooks. Key files: `src/main.rs`, `src/cmd/init.rs`,
-`src/cmd/prime.rs`, `src/cmd/setup_claude.rs`, `src/cmd/setup_codex.rs`,
-`src/config.rs`, `SPEC.md`, `tests/merge.rs`. Useful when changing the
-command surface, session-start instructions, skeleton wiki files,
+claude`, `trk setup codex`, installation instructions, README,
+retrieval-oriented wiki prompt, remote-first wiki sync discipline,
+storage mode, wiki update threshold, toc/index/page hooks. Key files:
+`README.md`, `src/main.rs`, `src/cmd/init.rs`, `src/cmd/prime.rs`,
+`src/cmd/setup_claude.rs`, `src/cmd/setup_codex.rs`, `src/config.rs`,
+`SPEC.md`, `tests/merge.rs`. Useful when changing the command surface,
+installation docs, session-start instructions, skeleton wiki files,
 wiki-sync instructions, or the rules agents see before editing code.
 
 Trapperkeeper is a small Rust CLI (`trk`) that installs and primes an
@@ -16,6 +17,11 @@ save source exploration. Storage is selected once at `trk init` time:
 orphan-branch worktree by default, or an in-tree committed directory.
 
 ## Command Surface
+
+`README.md` is the user-facing entry point. It documents Cargo
+installation from GitHub or a local checkout, the initial `trk init`
+flows, `trk setup claude`, `trk setup codex`, `trk prime`, and the
+manual wiki commit workflow for orphan versus in-tree mode.
 
 - `trk init` — creates the default orphan-branch wiki, checks it out at
   `.trapper_keeper/`, gitignores that worktree, writes
