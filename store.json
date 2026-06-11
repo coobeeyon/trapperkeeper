@@ -45,11 +45,10 @@
       "title": "Add README installation instructions",
       "description": "Create a README with installation and usage instructions, then commit and sync the changes.",
       "item_type": "task",
-      "status": "open",
+      "status": "closed",
       "priority": 2,
-      "claimed_by": "Michael Daum",
       "created_at": "2026-06-11T20:27:17.442852687Z",
-      "updated_at": "2026-06-11T20:27:22.627007709Z"
+      "updated_at": "2026-06-11T20:29:46.703200730Z"
     },
     "lb-mrwx": {
       "id": "lb-mrwx",
