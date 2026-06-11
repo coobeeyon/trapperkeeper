@@ -40,6 +40,16 @@
       "created_at": "2026-04-08T17:00:53.570027049Z",
       "updated_at": "2026-04-08T17:07:44.828517682Z"
     },
+    "lb-kq0m": {
+      "id": "lb-kq0m",
+      "title": "Add README installation instructions",
+      "description": "Create a README with installation and usage instructions, then commit and sync the changes.",
+      "item_type": "task",
+      "status": "open",
+      "priority": 2,
+      "created_at": "2026-06-11T20:27:17.442852687Z",
+      "updated_at": "2026-06-11T20:27:17.442852687Z"
+    },
     "lb-mrwx": {
       "id": "lb-mrwx",
       "title": "Groom Trapperkeeper wiki",
