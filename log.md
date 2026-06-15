@@ -90,3 +90,8 @@ running initial `trk init` flows, wiring Claude Code or Codex hooks,
 using `trk prime`, and committing wiki changes in orphan versus in-tree
 mode. Updated architecture/index hooks so future agents can find the docs
 contract quickly.
+
+## [2026-06-15] release | Promote README docs to main
+Fast-forwarded `main` from `1290a54` to `bd5ca62`, bringing in the
+retrieval-oriented `trk prime` prompt update and `README.md` installation
+instructions. `cargo test` passed on the mainline result before push.

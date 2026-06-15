@@ -21,7 +21,9 @@ orphan-branch worktree by default, or an in-tree committed directory.
 `README.md` is the user-facing entry point. It documents Cargo
 installation from GitHub or a local checkout, the initial `trk init`
 flows, `trk setup claude`, `trk setup codex`, `trk prime`, and the
-manual wiki commit workflow for orphan versus in-tree mode.
+manual wiki commit workflow for orphan versus in-tree mode. The README
+install docs and retrieval-oriented prime prompt work were fast-forwarded
+to `main` on 2026-06-15, with `bd5ca62` as the resulting mainline tip.
 
 - `trk init` — creates the default orphan-branch wiki, checks it out at
   `.trapper_keeper/`, gitignores that worktree, writes

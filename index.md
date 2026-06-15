@@ -30,6 +30,7 @@
 - **lint** — wiki operation: health check for contradictions/orphans. pages/llm-wiki-pattern.md
 - **litebrite** — reference implementation for git-native tracker patterns. ../litebrite, SPEC.md, pages/decisions.md
 - **LLM Wiki pattern** — three-layer architecture (raw/wiki/schema). pages/llm-wiki-pattern.md
+- **main branch docs** — README install docs and retrieval-oriented prime prompt were promoted to `main` on 2026-06-15. README.md, src/cmd/prime.rs, pages/architecture.md
 - **merge=union** — gitattributes setting for append-only log.md. pages/in-tree-mode.md
 - **mktree** — build initial wiki trees from blob entries. src/git.rs, pages/git-plumbing.md
 - **mode** — orphan vs in-tree storage. src/config.rs, pages/in-tree-mode.md
