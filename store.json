@@ -115,11 +115,10 @@
       "title": "Promote README docs to main",
       "description": "Merge the README installation documentation into main, update the Trapperkeeper wiki to reflect mainline status, and push all relevant branches.",
       "item_type": "task",
-      "status": "open",
+      "status": "closed",
       "priority": 1,
-      "claimed_by": "Michael Daum",
       "created_at": "2026-06-15T16:57:56.141220794Z",
-      "updated_at": "2026-06-15T16:58:04.990958632Z"
+      "updated_at": "2026-06-15T17:00:33.886987503Z"
     }
   },
   "deps": [
