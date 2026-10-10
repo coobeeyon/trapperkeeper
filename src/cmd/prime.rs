@@ -40,6 +40,14 @@ session already worked out. A good wiki page saves dozens of tool calls.
 
 Before reading source files to understand the codebase, check the wiki first.
 
+Use `trk find \"<question>\"` for a compact set of cited passages. Read the
+cited section and its dates; search rank does not establish current state or
+permission. A known page may be read directly. If search is unavailable,
+partial or unhelpful, use scoped reads of toc.md/index.md and linked pages.
+When telemetry is enabled, results include a search ID. After using the
+evidence, `trk feedback <id> --outcome useful|irrelevant|missing|stale|incorrect`
+can record a judgment (optionally `--rank N`). Do not equate a hit with success.
+
 - `{path}/toc.md` — find the relevant page
 - `{path}/index.md` — search by the words a future agent would actually use
 - `{path}/pages/<page>.md` — read compiled knowledge

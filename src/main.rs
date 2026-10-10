@@ -1,6 +1,8 @@
 mod cmd;
 mod config;
 mod git;
+mod retrieval;
+mod telemetry;
 
 use clap::{Parser, Subcommand};
 use std::path::PathBuf;
@@ -33,6 +35,12 @@ enum Command {
     },
     /// Output wiki context for agent hook injection
     Prime,
+    /// Retrieve bounded, cited passages from this repository's wiki
+    Find(cmd::find::Find),
+    /// Record a usefulness judgment for a logged search
+    Feedback(telemetry::Feedback),
+    /// Summarize local retrieval telemetry (JSON, no raw queries)
+    Telemetry(telemetry::Report),
 }
 
 #[derive(Subcommand)]
@@ -53,6 +61,9 @@ fn main() {
             SetupTarget::Codex => cmd::setup_codex::run(),
         },
         Command::Prime => cmd::prime::run(),
+        Command::Find(args) => std::process::exit(cmd::find::run(args)),
+        Command::Feedback(args) => telemetry::feedback(args),
+        Command::Telemetry(args) => telemetry::report(args),
     };
 
     if let Err(e) = result {
