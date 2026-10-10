@@ -3,7 +3,7 @@ use corpus::{Corpus, Page};
 use serde::Serialize;
 use std::collections::BTreeSet;
 
-pub const RANKER: &str = "lexical-v1";
+pub const RANKER: &str = "lexical-v2";
 
 pub fn normalize(s: &str) -> String {
     s.to_lowercase()
@@ -27,6 +27,16 @@ pub fn terms(s: &str) -> BTreeSet<String> {
                 ]
                 .contains(&t)
             {
+                // A deliberately small inflection fold, not synonym expansion.
+                // Preserve identifiers and endings such as status/business/analysis.
+                let t = if t.len() > 4
+                    && t.bytes().all(|c| c.is_ascii_alphabetic())
+                    && !["ss", "us", "is"].iter().any(|suffix| t.ends_with(suffix))
+                {
+                    t.strip_suffix('s').unwrap_or(t)
+                } else {
+                    t
+                };
                 result.insert(t.to_string());
             }
         }
@@ -96,6 +106,124 @@ fn clip(s: &str, n: usize) -> String {
     s.chars().take(n).collect()
 }
 
+struct Passage {
+    text: String,
+    terms: BTreeSet<String>,
+    score: usize,
+    first_match: usize,
+    start: usize,
+    end: usize,
+    truncated: bool,
+}
+
+// Score the bounded text that will actually be returned, not all the words
+// scattered through an arbitrarily large section. Overlapping windows also
+// reach matches beyond the first 600 characters of a single Markdown line.
+fn passage(lines: &[&str], weights: &[(String, usize)]) -> Passage {
+    let mut chars = Vec::new();
+    let mut line_at = Vec::new();
+    let mut starts = BTreeSet::from([0]);
+    let mut matched_buckets = BTreeSet::new();
+    for (i, line) in lines.iter().enumerate() {
+        if i > 0 {
+            chars.push('\n');
+            line_at.push(i - 1);
+        }
+        // At most one matching line start per 300-character bucket, plus the
+        // fixed grid below. Tiny repeated lines cannot multiply window work.
+        let bucket = chars.len() / 300;
+        if !matched_buckets.contains(&bucket) {
+            let line_terms = terms(line);
+            if weights.iter().any(|(term, _)| line_terms.contains(term)) {
+                starts.insert(chars.len());
+                matched_buckets.insert(bucket);
+            }
+        }
+        for c in line.chars() {
+            chars.push(c);
+            line_at.push(i);
+        }
+    }
+    starts.extend((0..chars.len()).step_by(300));
+    let mut best: Option<Passage> = None;
+    for mut start in starts {
+        let mut end = (start + 600).min(chars.len());
+        // Never create a match by slicing through a larger token. Whitespace
+        // boundaries also preserve UTF-8 and keep citations on original lines.
+        if start > 0 && !chars[start - 1].is_whitespace() {
+            while start < end && !chars[start].is_whitespace() {
+                start += 1;
+            }
+        }
+        if end < chars.len() && !chars[end].is_whitespace() {
+            while end > start && !chars[end - 1].is_whitespace() {
+                end -= 1;
+            }
+        }
+        while start < end && chars[start].is_whitespace() {
+            start += 1;
+        }
+        while end > start && chars[end - 1].is_whitespace() {
+            end -= 1;
+        }
+        if start == end {
+            continue;
+        }
+        let text: String = chars[start..end].iter().collect();
+        let visible = terms(&text);
+        // Wiki entity records commonly use a leading bold label in a bullet
+        // instead of a Markdown heading. Only labels visible in this window
+        // receive the same local-topic boost; repetition never adds points.
+        let labels: BTreeSet<_> = text
+            .lines()
+            .filter_map(|line| {
+                let line = line.trim_start().trim_start_matches("- ");
+                line.strip_prefix("**")?.split_once("**").map(|p| p.0)
+            })
+            .flat_map(terms)
+            .collect();
+        let score = weights
+            .iter()
+            .map(|(t, w)| {
+                w * (8 * usize::from(visible.contains(t)) + 8 * usize::from(labels.contains(t)))
+            })
+            .sum();
+        if best.as_ref().is_some_and(|b| score < b.score) {
+            continue;
+        }
+        let mut first_match = 0;
+        for word in text.split_inclusive(char::is_whitespace) {
+            let word_terms = terms(word);
+            if weights.iter().any(|(term, _)| word_terms.contains(term)) {
+                break;
+            }
+            first_match += word.chars().count();
+        }
+        if best.as_ref().is_none_or(|b| {
+            score > b.score || (score > 0 && score == b.score && first_match < b.first_match)
+        }) {
+            best = Some(Passage {
+                text,
+                terms: visible,
+                score,
+                first_match,
+                start: line_at[start],
+                end: line_at[end - 1],
+                truncated: start > 0 || end < chars.len(),
+            });
+        }
+    }
+    best.unwrap_or(Passage {
+        text: String::new(),
+        terms: BTreeSet::new(),
+        score: 0,
+        first_match: 0,
+        start: 0,
+        end: 0,
+        truncated: !chars.is_empty(),
+    })
+}
+
 pub fn rank(corpus: &Corpus, query: &str) -> Vec<Hit> {
     let query = normalize(query);
     let qt = terms(&query);
@@ -117,15 +245,18 @@ pub fn rank(corpus: &Corpus, query: &str) -> Vec<Hit> {
     let weights: Vec<_> = qt
         .iter()
         .map(|t| {
-            (
-                t.clone(),
-                (1024 * (corpus.pages.len() + 1))
-                    .div_ceil(page_terms.iter().filter(|set| set.contains(t)).count() + 1),
-            )
+            let frequency = page_terms.iter().filter(|set| set.contains(t)).count();
+            // Logarithmic rarity: one unusual incidental word must not drown
+            // out several common words that jointly describe the question.
+            let rarity = ((corpus.pages.len() + 1) as f64 / (frequency + 1) as f64).ln();
+            (t.clone(), 1024 + (1024.0 * rarity).round() as usize)
         })
         .collect();
     let mut hits = vec![];
-    for page in &corpus.pages {
+    for (page, indexed_terms) in corpus.pages.iter().zip(&page_terms) {
+        if qt.is_disjoint(indexed_terms) {
+            continue;
+        }
         if let Some(hit) = rank_page(page, &query, &qt, &weights) {
             hits.push(hit);
         }
@@ -133,9 +264,9 @@ pub fn rank(corpus: &Corpus, query: &str) -> Vec<Hit> {
     hits.sort_by(|a, b| {
         b.exact_match
             .cmp(&a.exact_match)
-            .then(b.matched_terms.len().cmp(&a.matched_terms.len()))
-            .then(b.passage_terms.len().cmp(&a.passage_terms.len()))
+            .then((!b.passage_terms.is_empty()).cmp(&!a.passage_terms.is_empty()))
             .then(b.score.cmp(&a.score))
+            .then(b.matched_terms.len().cmp(&a.matched_terms.len()))
             .then(a.preference.cmp(&b.preference))
             .then(a.path.cmp(&b.path))
             .then(a.line_start.cmp(&b.line_start))
@@ -183,65 +314,29 @@ fn rank_page(
             .map(|_| lines[start].trim_start_matches('#').trim())
             .unwrap_or(title);
         let header_terms = terms(heading);
-        let body = lines[start..end].join("\n");
-        let body_terms = terms(&body);
+        let snippet = passage(&lines[start..end], weights);
+        let body_terms = &snippet.terms;
         let mut matched = vec![];
-        let mut score = 0;
+        let mut score = snippet.score;
         for (term, weight) in weights {
-            let field = if nav_terms.contains(term) && nav.file == "index.md" {
-                6
-            } else if title_terms.contains(term) || header_terms.contains(term) {
+            let field = if header_terms.contains(term) {
+                8
+            } else if title_terms.contains(term) {
                 4
-            } else if nav_terms.contains(term) {
+            } else if nav_terms.contains(term) && nav.file == "index.md" {
                 2
-            } else if body_terms.contains(term) {
+            } else if nav_terms.contains(term) {
                 1
             } else {
                 0
             };
-            if field > 0 {
+            if field > 0 || body_terms.contains(term) {
                 matched.push(term.clone());
                 score += weight * field;
-            }
-            // Matching actual passage breaks ties between sections on a broadly aliased page.
-            if body_terms.contains(term) {
-                score += weight;
             }
         }
         if matched.is_empty() {
             continue;
-        }
-        let focus = (start..end)
-            .max_by_key(|&i| {
-                let t = terms(lines[i]);
-                (qt.intersection(&t).count(), usize::MAX - i)
-            })
-            .unwrap_or(start);
-        let preceding = focus.saturating_sub(1).max(start);
-        let snippet_start = if preceding != focus
-            && lines[preceding].chars().count() + lines[focus].chars().count() + 1 > 600
-        {
-            focus
-        } else {
-            preceding
-        };
-        let mut excerpt = String::new();
-        let mut snippet_end = snippet_start;
-        let mut line_cut = false;
-        for (i, line) in lines.iter().enumerate().take(end).skip(snippet_start) {
-            if excerpt.chars().count() >= 599 {
-                break;
-            }
-            if !excerpt.is_empty() {
-                excerpt.push('\n');
-            }
-            let remaining = 600 - excerpt.chars().count();
-            line_cut = line.chars().count() > remaining;
-            excerpt.push_str(&clip(line, remaining));
-            snippet_end = i;
-            if excerpt.chars().count() >= 600 {
-                break;
-            }
         }
         let context = lines
             .iter()
@@ -269,18 +364,18 @@ fn rank_page(
             path: page.path.clone(),
             title: clip(title, 160),
             heading: clip(heading, 160),
-            line_start: snippet_start + 1,
-            line_end: snippet_end + 1,
+            line_start: start + snippet.start + 1,
+            line_end: start + snippet.end + 1,
             anchor: nav.anchor.clone(),
             digest: page.digest.clone(),
             navigation: format!("{}:{}", nav.file, nav.line),
-            excerpt_truncated: snippet_start > start || snippet_end + 1 < end || line_cut,
-            excerpt,
+            excerpt_truncated: snippet.truncated,
+            excerpt: snippet.text,
             context: clip(&context, 400),
             matched_terms: matched.clone(),
             passage_terms: qt
                 .iter()
-                .filter(|t| body_terms.contains(*t) || title_terms.contains(*t))
+                .filter(|t| body_terms.contains(*t))
                 .cloned()
                 .collect(),
             partial_match: matched.len() < qt.len(),
@@ -295,15 +390,15 @@ fn rank_page(
             (
                 hit.anchored,
                 hit.exact_match,
-                hit.matched_terms.len(),
-                hit.passage_terms.len(),
+                !hit.passage_terms.is_empty(),
                 hit.score,
+                hit.matched_terms.len(),
             ) > (
                 b.anchored,
                 b.exact_match,
-                b.matched_terms.len(),
-                b.passage_terms.len(),
+                !b.passage_terms.is_empty(),
                 b.score,
+                b.matched_terms.len(),
             )
         }) {
             best = Some(hit);
