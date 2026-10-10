@@ -93,10 +93,6 @@ Print the wiki instructions and current retrieval context:
 
 ```sh
 trk prime
-trk find "release approval" [--json] [--limit 3] [--max-chars 6000]
-trk find --query-stdin
-trk feedback <SEARCH_ID> --outcome useful [--rank 1]
-trk telemetry [--days 7]
 ```
 
 ## Finding compiled knowledge
@@ -218,6 +214,10 @@ trk init [--in-tree <PATH>] [--adopt]
 trk setup claude
 trk setup codex
 trk prime
+trk find "release approval" [--json] [--limit 3] [--max-chars 6000]
+trk find --query-stdin
+trk feedback <SEARCH_ID> --outcome useful [--rank 1]
+trk telemetry [--days 7]
 ```
 
 ## Storage Modes
