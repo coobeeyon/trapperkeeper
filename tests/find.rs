@@ -249,6 +249,91 @@ fn giant_navigation_entries_are_bounded_and_reported() {
 }
 
 #[test]
+fn entity_passage_beats_generic_intro_and_scattered_log_mentions() {
+    let r = Repo::new();
+    fs::write(r.wiki.join("index.md"), "- **leads / prospect / Northstar account** — [Prospects](pages/releases.md)\n- **billing / work history** — [Log](pages/queue.md)\n").unwrap();
+    fs::write(r.wiki.join("pages/releases.md"), "# Prospects and pipeline\nConcepts: prospect list, clients and leads.\n## Active leads\n- **Northstar** — The account needs a bridge inspection proposal. Contact is waiting for the survey.\n").unwrap();
+    fs::write(r.wiki.join("pages/queue.md"), format!("# Billing\n## Work history\nUnrelated prospect accounting.\n{}\nNorthstar was excluded from billing.\n", "No client activity was billed here.\n".repeat(80))).unwrap();
+    let v = r.find("Northstar prospect");
+    assert_eq!(v["hits"][0]["path"], "pages/releases.md");
+    assert_eq!(v["hits"][0]["heading"], "Active leads");
+    assert!(v["hits"][0]["excerpt"]
+        .as_str()
+        .unwrap()
+        .contains("bridge inspection"));
+    for hit in v["hits"].as_array().unwrap() {
+        for term in hit["passage_terms"].as_array().unwrap() {
+            assert!(hit["excerpt"]
+                .as_str()
+                .unwrap()
+                .to_lowercase()
+                .contains(term.as_str().unwrap()));
+        }
+    }
+}
+
+#[test]
+fn long_line_returns_the_match_instead_of_the_first_six_hundred_characters() {
+    let r = Repo::new();
+    fs::write(r.wiki.join("pages/releases.md"), format!("# Release workflow\n## Details\n{}The aurora circuit needs inspection before use. {}\n", "Unrelated background. ".repeat(90), "More background. ".repeat(90))).unwrap();
+    let v = r.find("aurora circuit");
+    let h = &v["hits"][0];
+    assert!(h["excerpt"]
+        .as_str()
+        .unwrap()
+        .contains("aurora circuit needs inspection"));
+    assert_eq!(h["line_start"], 3);
+    assert_eq!(h["line_end"], 3);
+    assert_eq!(h["excerpt_truncated"], true);
+    assert!(h["excerpt"].as_str().unwrap().chars().count() <= 600);
+}
+
+#[test]
+fn bounded_windows_handle_unicode_and_start_near_the_matching_record() {
+    let r = Repo::new();
+    let background = "旧資料には現在の状態は記載されていません。 ".repeat(80);
+    fs::write(r.wiki.join("pages/releases.md"), format!("# Release workflow\n## Records\n{background}\n- **Aurora** — The circuit inspection is waiting on a permit.\n")).unwrap();
+    let v = r.find("aurora circuit");
+    let h = &v["hits"][0];
+    assert!(h["excerpt"].as_str().unwrap().starts_with("- **Aurora**"));
+    assert_eq!(h["line_start"], 4);
+    assert_eq!(h["line_end"], 4);
+    assert_eq!(h["passage_terms"], json!(["aurora", "circuit"]));
+}
+
+#[test]
+fn simple_plural_queries_find_the_same_passage_without_matching_substrings() {
+    let r = Repo::new();
+    fs::write(r.wiki.join("pages/releases.md"), "# Inspection records\n## Circuits\n- **Aurora** — The inspection needs permits and diagrams.\n").unwrap();
+    for query in ["aurora inspection permit", "aurora inspections permits"] {
+        let v = r.find(query);
+        assert_eq!(v["hits"][0]["path"], "pages/releases.md");
+        assert!(v["hits"][0]["excerpt"].as_str().unwrap().contains("Aurora"));
+    }
+    r.cmd()
+        .args(["find", "auror", "--no-telemetry"])
+        .assert()
+        .code(3);
+}
+
+#[test]
+fn scattered_terms_do_not_claim_complete_local_coverage() {
+    let r = Repo::new();
+    fs::write(
+        r.wiki.join("pages/releases.md"),
+        format!(
+            "# Records\nAster\n{}\nBorealis\n",
+            "Unrelated material. ".repeat(120)
+        ),
+    )
+    .unwrap();
+    let v = r.find("aster borealis");
+    let h = &v["hits"][0];
+    assert_eq!(h["passage_terms"].as_array().unwrap().len(), 1);
+    assert_eq!(h["partial_match"], true);
+}
+
+#[test]
 fn snapshot_changes_and_unlogged_searches_leave_wiki_untouched() {
     let r = Repo::new();
     let before = fs::read(r.wiki.join("pages/releases.md")).unwrap();

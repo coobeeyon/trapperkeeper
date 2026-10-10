@@ -104,9 +104,16 @@ unlinked pages, raw sources, conversation history, external URLs or Git history.
 It works offline and does not use a model, embeddings, daemon or persistent index.
 Navigation therefore remains the maintained front door to the corpus.
 
-The deterministic `lexical-v1` ranker uses index aliases, page titles, headings
-and passage terms, with corpus rarity weighting. Exact multiword aliases and
-identifiers receive priority; matching passage coverage breaks broad-alias ties.
+The deterministic `lexical-v2` ranker uses index aliases, page titles, headings
+and visible passage terms, with logarithmic corpus rarity weighting. Exact
+multiword aliases and identifiers receive priority. Other results favor actual
+passage evidence over navigation-only matches, then weighted relevance rather
+than raw matched-word counts. Leading bold record labels receive a topic boost.
+Bounded overlapping windows reach matches deep inside long paragraphs; reported
+`passage_terms` describe only the returned excerpt, not distant words in its
+section. A conservative trailing-s fold matches simple English plurals; it is
+not a general stemmer or synonym model. Scores are not comparable across ranker
+versions; telemetry records the version for before/after analysis.
 It returns one section per page, deduplicated, with source path/lines, navigation
 origin, SHA-256 digest, dates/status context where present, and coverage warnings.
 Scores are ordering signals, not confidence or proof. This is lexical matching:
