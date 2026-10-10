@@ -21,13 +21,33 @@ pub struct Reader {
 
 impl Reader {
     pub fn new(root: &Path) -> Result<Self, String> {
+        if !root.is_absolute() {
+            return Err("wiki root must be absolute".into());
+        }
         let fd = open(
-            root,
+            "/",
             OFlags::RDONLY | OFlags::DIRECTORY | OFlags::NOFOLLOW,
             Mode::empty(),
         )
         .map_err(|e| e.to_string())?;
-        Ok(Self { dir: fd.into() })
+        let mut dir: File = fd.into();
+        for part in root.components() {
+            match part {
+                Component::RootDir => continue,
+                Component::Normal(name) => {
+                    dir = openat(
+                        &dir,
+                        name,
+                        OFlags::RDONLY | OFlags::DIRECTORY | OFlags::NOFOLLOW,
+                        Mode::empty(),
+                    )
+                    .map_err(|e| e.to_string())?
+                    .into();
+                }
+                _ => return Err("wiki root must be canonical".into()),
+            }
+        }
+        Ok(Self { dir })
     }
 
     pub fn read(&self, path: &Path) -> Result<String, String> {

@@ -131,7 +131,10 @@ Reads are bounded to 1 MiB per file, 2,000 targets, 64 MiB accepted corpus,
 navigation files, and 4 KiB per navigation entry. Exceeding a
 limit marks coverage partial. Non-UTF-8, nonregular, hard-linked, symlinked and
 traversing targets are excluded. Descriptor-relative reads prevent linked pages
-from escaping the configured canonical wiki root. The implementation currently
+from escaping the configured canonical wiki root. The configured path must be
+repository-relative without `..`, and its canonical root must remain within
+the repository (including in orphan mode). External wiki-root symlinks are
+not supported by find. The implementation currently
 requires Unix. Results identify the bytes read, plus Git revision and dirty state;
 they are **not an atomic snapshot** of concurrently edited files. Changed files
 during a read and revision changes during a scan are reported; edits between
@@ -152,7 +155,10 @@ trk telemetry --days 7
 `--telemetry-dir` overrides `TRK_TELEMETRY_DIR`, then Git `trk.telemetryDir`.
 `--no-telemetry` overrides all three. No telemetry is sent over the network.
 Directories are created owner-only (0700); logs require 0600 with no symlink or
-hard-link targets. Git global config can intentionally opt in all repositories.
+hard-link targets. Every directory component is opened without following
+symlinks. Locations within Git worktrees, Git metadata or bare repositories
+are rejected before creating logs. An inaccessible or unsafe location is an
+error, not an empty report. Git global config can intentionally opt in all repositories.
 
 Receipts record successful, partial, no-match and failed searches, ranker version,
 query hash/length, corpus revision/digest/coverage, returned paths/digests/ranks,

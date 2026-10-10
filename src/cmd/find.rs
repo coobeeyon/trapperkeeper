@@ -6,7 +6,7 @@ use crate::{
 use clap::Args;
 use serde_json::{json, Value};
 use std::io::Read;
-use std::path::PathBuf;
+use std::path::{Component, PathBuf};
 use std::process::Command;
 use std::time::Instant;
 
@@ -70,11 +70,24 @@ fn git_at(root: &std::path::Path, args: &[&str]) -> Option<String> {
 }
 fn search(args: &Find, q: &str, id: &str) -> Result<Value, String> {
     let cfg = config::load()?.ok_or("wiki not initialized; no files searched")?;
-    let repo = PathBuf::from(git::git(&["rev-parse", "--show-toplevel"])?);
+    let repo = PathBuf::from(git::git(&["rev-parse", "--show-toplevel"])?)
+        .canonicalize()
+        .map_err(|_| "repository unavailable")?;
+    if cfg.wiki_path().is_absolute()
+        || cfg
+            .wiki_path()
+            .components()
+            .any(|c| !matches!(c, Component::Normal(_) | Component::CurDir))
+    {
+        return Err("configured wiki must be a contained repository-relative path".into());
+    }
     let root = repo
         .join(cfg.wiki_path())
         .canonicalize()
         .map_err(|_| "configured wiki unavailable")?;
+    if !root.starts_with(&repo) {
+        return Err("configured wiki resolves outside the repository".into());
+    }
     let before = git_at(&root, &["rev-parse", "HEAD"]);
     let corpus = corpus::load(&root)?;
     let after = git_at(&root, &["rev-parse", "HEAD"]);

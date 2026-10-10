@@ -14,7 +14,7 @@ struct Repo {
 impl Repo {
     fn new() -> Self {
         let tmp = TempDir::new().unwrap();
-        let root = tmp.path().to_path_buf();
+        let root = tmp.path().join("repo");
         let wiki = root.join("wiki");
         assert!(Process::new("git")
             .args(["init", "-q"])
@@ -66,7 +66,7 @@ impl Repo {
         serde_json::from_slice(&out.stdout).unwrap()
     }
     fn log(&self) -> PathBuf {
-        self.root.join("private-events")
+        self._tmp.path().join("private-events")
     }
 }
 fn logs(path: &Path) -> Vec<Value> {
@@ -481,4 +481,138 @@ fn telemetry_opt_out_overrides_config_and_symlink_log_is_refused() {
     let v: Value = serde_json::from_slice(&out.stdout).unwrap();
     assert_eq!(v["telemetry"], "failed");
     assert_eq!(fs::read_to_string(outside).unwrap(), "preserve");
+}
+
+#[test]
+fn configured_wiki_cannot_escape_repository() {
+    let r = Repo::new();
+    let outside = r._tmp.path().join("outside-wiki");
+    fs::create_dir(&outside).unwrap();
+    fs::write(outside.join("index.md"), "[Secret](secret.md)\n").unwrap();
+    fs::write(outside.join("toc.md"), "").unwrap();
+    fs::write(outside.join("secret.md"), "# PRIVATE_SENTINEL\n").unwrap();
+    symlink(&outside, r.root.join("escaped")).unwrap();
+    for path in [
+        outside.to_string_lossy().as_ref(),
+        "../outside-wiki",
+        "escaped",
+        "../repo/wiki",
+    ] {
+        fs::write(
+            r.root.join(".trapperkeeper.json"),
+            json!({"version":1,"mode":"in-tree","path":path}).to_string(),
+        )
+        .unwrap();
+        let out = r
+            .cmd()
+            .args(["find", "PRIVATE_SENTINEL", "--json", "--no-telemetry"])
+            .output()
+            .unwrap();
+        assert_eq!(out.status.code(), Some(1), "path: {path}");
+        let v: Value = serde_json::from_slice(&out.stdout).unwrap();
+        assert_eq!(v["status"], "unavailable");
+        assert!(!v.to_string().contains("PRIVATE_SENTINEL"));
+    }
+    fs::write(
+        r.root.join(".trapperkeeper.json"),
+        json!({"version":1,"mode":"orphan"}).to_string(),
+    )
+    .unwrap();
+    symlink(&outside, r.root.join(".trapper_keeper")).unwrap();
+    r.cmd().args(["find", "secret", "--json"]).assert().code(1);
+    symlink(&r.wiki, r.root.join("inside")).unwrap();
+    fs::write(
+        r.root.join(".trapperkeeper.json"),
+        json!({"version":1,"mode":"in-tree","path":"inside"}).to_string(),
+    )
+    .unwrap();
+    assert_eq!(r.find("shipping")["status"], "ok");
+}
+
+#[test]
+fn telemetry_never_creates_logs_inside_a_repository() {
+    let r = Repo::new();
+    let other = r._tmp.path().join("other-repo");
+    assert!(Process::new("git")
+        .args(["init", "-q"])
+        .arg(&other)
+        .status()
+        .unwrap()
+        .success());
+    let bare = r._tmp.path().join("bare-repo");
+    assert!(Process::new("git")
+        .args(["init", "--bare", "-q"])
+        .arg(&bare)
+        .status()
+        .unwrap()
+        .success());
+    let worktree = r._tmp.path().join("linked-worktree");
+    fs::create_dir(&worktree).unwrap();
+    fs::write(worktree.join(".git"), "gitdir: elsewhere\n").unwrap();
+    for parent in [
+        &r.root,
+        &r.wiki,
+        &r.root.join(".git"),
+        &other,
+        &bare,
+        &worktree,
+    ] {
+        let dir = parent.join("private-events");
+        let out = r
+            .cmd()
+            .args(["find", "shipping", "--json", "--telemetry-dir"])
+            .arg(&dir)
+            .output()
+            .unwrap();
+        assert!(out.status.success());
+        let v: Value = serde_json::from_slice(&out.stdout).unwrap();
+        assert_eq!(v["telemetry"], "failed", "{}", dir.display());
+        assert!(!dir.exists());
+        r.cmd()
+            .args(["telemetry", "--telemetry-dir"])
+            .arg(&dir)
+            .assert()
+            .failure();
+    }
+}
+
+#[test]
+fn telemetry_uninspectable_paths_are_errors_not_empty_reports() {
+    let r = Repo::new();
+    let dangling = r._tmp.path().join("dangling");
+    symlink(r._tmp.path().join("does-not-exist"), &dangling).unwrap();
+    let linked = r._tmp.path().join("linked-parent");
+    symlink(&r.root, &linked).unwrap();
+    for path in [
+        dangling,
+        linked.join("events"),
+        PathBuf::from("relative-missing"),
+    ] {
+        r.cmd()
+            .args(["telemetry", "--telemetry-dir"])
+            .arg(&path)
+            .assert()
+            .failure();
+        let out = r
+            .cmd()
+            .args(["find", "shipping", "--json", "--telemetry-dir"])
+            .arg(&path)
+            .output()
+            .unwrap();
+        let v: Value = serde_json::from_slice(&out.stdout).unwrap();
+        assert_eq!(v["telemetry"], "failed");
+    }
+    let private = r.log();
+    fs::create_dir(&private).unwrap();
+    fs::set_permissions(&private, fs::Permissions::from_mode(0o0)).unwrap();
+    let out = r
+        .cmd()
+        .args(["telemetry", "--telemetry-dir"])
+        .arg(private.join("events"))
+        .output()
+        .unwrap();
+    fs::set_permissions(&private, fs::Permissions::from_mode(0o700)).unwrap();
+    if Process::new("id").arg("-u").output().unwrap().stdout != b"0\n" {
+        assert!(!out.status.success());
+    }
 }

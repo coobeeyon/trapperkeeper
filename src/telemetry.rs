@@ -1,12 +1,12 @@
 //! Optional local receipts. No network, raw excerpts, or implicit query logging.
 use clap::{Args, ValueEnum};
-use rustix::fs::{flock, open, openat, FlockOperation, Mode, OFlags};
+use rustix::fs::{flock, mkdirat, open, openat, statat, AtFlags, FlockOperation, Mode, OFlags};
 use serde_json::{json, Value};
 use std::collections::{BTreeMap, BTreeSet};
-use std::fs::{self, File};
+use std::fs::File;
 use std::io::{BufRead, BufReader, Write};
-use std::os::unix::fs::{DirBuilderExt, MetadataExt, PermissionsExt};
-use std::path::PathBuf;
+use std::os::unix::fs::{MetadataExt, PermissionsExt};
+use std::path::{Component, Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 #[derive(Args, Clone, Default)]
@@ -83,24 +83,59 @@ impl Options {
     }
 }
 
-fn directory(path: &PathBuf) -> Result<File, String> {
-    if !path.is_absolute() {
-        return Err("telemetry directory must be absolute".into());
+fn entry_exists(dir: &File, name: &str) -> Result<bool, String> {
+    match statat(dir, name, AtFlags::SYMLINK_NOFOLLOW) {
+        Ok(_) => Ok(true),
+        Err(rustix::io::Errno::NOENT) => Ok(false),
+        Err(e) => Err(format!("cannot inspect telemetry location: {e}")),
     }
-    if !path.exists() {
-        fs::DirBuilder::new()
-            .recursive(true)
-            .mode(0o700)
-            .create(path)
-            .map_err(|e| e.to_string())?;
+}
+
+fn outside_git(dir: &File) -> Result<(), String> {
+    if entry_exists(dir, ".git")?
+        || (entry_exists(dir, "HEAD")?
+            && entry_exists(dir, "objects")?
+            && entry_exists(dir, "refs")?)
+    {
+        return Err("telemetry directory must be outside Git worktrees and repositories".into());
     }
-    let fd = open(
-        path,
-        OFlags::RDONLY | OFlags::DIRECTORY | OFlags::NOFOLLOW,
-        Mode::empty(),
-    )
-    .map_err(|e| e.to_string())?;
-    let file: File = fd.into();
+    Ok(())
+}
+
+// Walk every component using descriptors: a symlink (including a dangling one)
+// is an error, never an empty report or an indirect write into a repository.
+fn directory(path: &Path, create: bool) -> Result<Option<File>, String> {
+    if !path.is_absolute()
+        || path
+            .components()
+            .any(|c| !matches!(c, Component::RootDir | Component::Normal(_)))
+    {
+        return Err("telemetry directory must be absolute without traversal".into());
+    }
+    let flags = OFlags::RDONLY | OFlags::DIRECTORY | OFlags::NOFOLLOW;
+    let mut file: File = open("/", flags, Mode::empty())
+        .map_err(|e| e.to_string())?
+        .into();
+    outside_git(&file)?;
+    for part in path.components() {
+        let Component::Normal(name) = part else {
+            continue;
+        };
+        let fd = match openat(&file, name, flags, Mode::empty()) {
+            Ok(fd) => fd,
+            Err(rustix::io::Errno::NOENT) if create => {
+                match mkdirat(&file, name, Mode::RUSR | Mode::WUSR | Mode::XUSR) {
+                    Ok(()) | Err(rustix::io::Errno::EXIST) => (),
+                    Err(e) => return Err(e.to_string()),
+                }
+                openat(&file, name, flags, Mode::empty()).map_err(|e| e.to_string())?
+            }
+            Err(rustix::io::Errno::NOENT) => return Ok(None),
+            Err(e) => return Err(format!("cannot safely open telemetry directory: {e}")),
+        };
+        file = fd.into();
+        outside_git(&file)?;
+    }
     if file
         .metadata()
         .map_err(|e| e.to_string())?
@@ -111,11 +146,11 @@ fn directory(path: &PathBuf) -> Result<File, String> {
     {
         return Err("telemetry directory must be owner-only (0700)".into());
     }
-    Ok(file)
+    Ok(Some(file))
 }
 
-pub fn append(path: &PathBuf, event: &Value) -> Result<(), String> {
-    let dir = directory(path)?;
+pub fn append(path: &Path, event: &Value) -> Result<(), String> {
+    let dir = directory(path, true)?.ok_or("telemetry directory unavailable")?;
     let name = format!("events-{}.jsonl", millis() / 86_400_000);
     let fd = openat(
         &dir,
@@ -161,11 +196,10 @@ pub struct Feedback {
     pub telemetry: Options,
 }
 
-fn read_events(path: &PathBuf, days: u16) -> Result<(Vec<Value>, usize), String> {
-    if !path.exists() {
+fn read_events(path: &Path, days: u16) -> Result<(Vec<Value>, usize), String> {
+    let Some(dir) = directory(path, false)? else {
         return Ok((vec![], 0));
-    }
-    let dir = directory(path)?;
+    };
     let today = (millis() / 86_400_000) as u64;
     let mut events = vec![];
     let mut malformed = 0;
