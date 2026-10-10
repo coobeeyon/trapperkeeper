@@ -91,12 +91,30 @@ fn entry_exists(dir: &File, name: &str) -> Result<bool, String> {
     }
 }
 
+fn git_layout(dir: &File) -> Result<bool, String> {
+    Ok(entry_exists(dir, "HEAD")?
+        && (entry_exists(dir, "objects")? || entry_exists(dir, "commondir")?))
+}
+
 fn outside_git(dir: &File) -> Result<(), String> {
-    if entry_exists(dir, ".git")?
-        || (entry_exists(dir, "HEAD")?
-            && entry_exists(dir, "objects")?
-            && entry_exists(dir, "refs")?)
-    {
+    // A stray empty .git directory is not a worktree. Inspect its layout,
+    // while failing closed on gitfiles, symlinks and inaccessible metadata.
+    let marker = match openat(
+        dir,
+        ".git",
+        OFlags::RDONLY | OFlags::DIRECTORY | OFlags::NOFOLLOW,
+        Mode::empty(),
+    ) {
+        Ok(fd) => git_layout(&File::from(fd))?,
+        Err(rustix::io::Errno::NOENT) => false,
+        Err(rustix::io::Errno::NOTDIR | rustix::io::Errno::LOOP) => true,
+        Err(e) => {
+            return Err(format!(
+                "cannot inspect Git metadata at telemetry location: {e}"
+            ))
+        }
+    };
+    if marker || git_layout(dir)? {
         return Err("telemetry directory must be outside Git worktrees and repositories".into());
     }
     Ok(())

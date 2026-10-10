@@ -616,3 +616,23 @@ fn telemetry_uninspectable_paths_are_errors_not_empty_reports() {
         assert!(!out.status.success());
     }
 }
+
+#[test]
+fn empty_git_folder_in_parent_is_not_a_repository() {
+    let r = Repo::new();
+    fs::create_dir(r._tmp.path().join(".git")).unwrap();
+    let out = r
+        .cmd()
+        .args(["find", "shipping", "--json", "--telemetry-dir"])
+        .arg(r.log())
+        .output()
+        .unwrap();
+    let v: Value = serde_json::from_slice(&out.stdout).unwrap();
+    assert_eq!(v["telemetry"], "enabled");
+    r.cmd()
+        .args(["telemetry", "--telemetry-dir"])
+        .arg(r.log())
+        .assert()
+        .success();
+    assert_eq!(logs(&r.log()).len(), 1);
+}
