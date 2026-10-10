@@ -122,13 +122,23 @@ struct Passage {
 fn passage(lines: &[&str], weights: &[(String, usize)]) -> Passage {
     let mut chars = Vec::new();
     let mut line_at = Vec::new();
-    let mut starts = BTreeSet::new();
+    let mut starts = BTreeSet::from([0]);
+    let mut matched_buckets = BTreeSet::new();
     for (i, line) in lines.iter().enumerate() {
         if i > 0 {
             chars.push('\n');
             line_at.push(i - 1);
         }
-        starts.insert(chars.len());
+        // At most one matching line start per 300-character bucket, plus the
+        // fixed grid below. Tiny repeated lines cannot multiply window work.
+        let bucket = chars.len() / 300;
+        if !matched_buckets.contains(&bucket) {
+            let line_terms = terms(line);
+            if weights.iter().any(|(term, _)| line_terms.contains(term)) {
+                starts.insert(chars.len());
+                matched_buckets.insert(bucket);
+            }
+        }
         for c in line.chars() {
             chars.push(c);
             line_at.push(i);
@@ -190,7 +200,7 @@ fn passage(lines: &[&str], weights: &[(String, usize)]) -> Passage {
             first_match += word.chars().count();
         }
         if best.as_ref().is_none_or(|b| {
-            (score, std::cmp::Reverse(first_match)) > (b.score, std::cmp::Reverse(b.first_match))
+            score > b.score || (score > 0 && score == b.score && first_match < b.first_match)
         }) {
             best = Some(Passage {
                 text,

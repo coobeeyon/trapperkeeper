@@ -334,6 +334,37 @@ fn scattered_terms_do_not_claim_complete_local_coverage() {
 }
 
 #[test]
+fn alias_only_long_section_keeps_its_intro_not_a_short_tail() {
+    let r = Repo::new();
+    fs::write(r.wiki.join("pages/releases.md"), format!("# Release workflow\n## Permission\nStart here: a human must authorize the action.\n{}\nUnrelated tail.\n", "Background information without any query words. ".repeat(100))).unwrap();
+    let h = &r.find("release authority")["hits"][0];
+    assert_eq!(h["heading"], "Permission");
+    // 'release' is in the page title, but neither query term is in the section.
+    assert!(h["passage_terms"].as_array().unwrap().is_empty());
+    assert!(h["excerpt"].as_str().unwrap().contains("Start here:"));
+    assert_eq!(h["line_start"], 2);
+}
+
+#[test]
+fn many_short_lines_still_reach_a_late_record() {
+    let r = Repo::new();
+    fs::write(
+        r.wiki.join("pages/releases.md"),
+        format!(
+            "# Record\n{}\n- **Aurora** — Circuit inspection awaits a permit.\n",
+            "x\n".repeat(250_000)
+        ),
+    )
+    .unwrap();
+    let h = &r.find("aurora circuit")["hits"][0];
+    assert!(h["excerpt"]
+        .as_str()
+        .unwrap()
+        .contains("Circuit inspection awaits a permit"));
+    assert!(h["excerpt"].as_str().unwrap().chars().count() <= 600);
+}
+
+#[test]
 fn snapshot_changes_and_unlogged_searches_leave_wiki_untouched() {
     let r = Repo::new();
     let before = fs::read(r.wiki.join("pages/releases.md")).unwrap();
